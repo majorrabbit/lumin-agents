@@ -1,0 +1,8 @@
+# Lumin MAS — shared library runtime dependencies.
+# Installed into every agent's venv alongside the agent's own requirements.txt.
+# Keep this list to what shared/* actually imports; agent-specific deps belong
+# in agents/<name>/requirements.txt.
+
+boto3>=1.42.0
+requests>=2.32.0
+python-dotenv>=1.0.0
