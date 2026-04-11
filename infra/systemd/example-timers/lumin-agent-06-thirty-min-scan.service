@@ -1,0 +1,28 @@
+[Unit]
+Description=Lumin Agent 06 — Cultural Moment Detection Scan
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lumin
+Group=lumin
+WorkingDirectory=/opt/lumin-agents
+EnvironmentFile=/opt/lumin-agents/.env
+Environment=TASK=cultural_moment_scan
+
+ExecStart=/opt/lumin-agents/agents/agent-06-cultural-moment/venv/bin/python \
+          /opt/lumin-agents/scripts/run_agent.py \
+          agent-06-cultural-moment cultural_moment_scan
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/lumin-agents/agents/agent-06-cultural-moment
+# Cultural moment scan must complete before the next 30-min window opens
+TimeoutStartSec=1500
+Restart=no
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lumin-agent-06-thirty-min-scan

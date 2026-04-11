@@ -1,0 +1,13 @@
+[Unit]
+Description=Lumin SBIA — Inbox Monitor (every 4 hours)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Every 4 hours — checks for new venue responses, booking inquiries, cancellations
+OnCalendar=*-*-* 00,04,08,12,16,20:00:00
+AccuracySec=1m
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

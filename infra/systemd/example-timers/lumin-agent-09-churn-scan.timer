@@ -1,0 +1,13 @@
+[Unit]
+Description=Lumin Agent 09 — Daily Churn Scan (15:00 UTC)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Daily at 15:00 UTC — one hour after onboarding sweep so signals don't collide
+OnCalendar=*-*-* 15:00:00
+AccuracySec=1m
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

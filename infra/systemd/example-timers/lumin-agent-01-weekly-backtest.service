@@ -1,0 +1,28 @@
+[Unit]
+Description=Lumin Agent 01 Resonance — Weekly Walk-Forward Backtest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lumin
+Group=lumin
+WorkingDirectory=/opt/lumin-agents
+EnvironmentFile=/opt/lumin-agents/.env
+Environment=TASK=weekly_backtest
+
+ExecStart=/opt/lumin-agents/agents/agent-01-resonance/venv/bin/python \
+          /opt/lumin-agents/scripts/run_agent.py \
+          agent-01-resonance weekly_backtest
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/lumin-agents/agents/agent-01-resonance
+# Backtests run against 7 days of predictions — allow extra time
+TimeoutStartSec=1200
+Restart=no
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lumin-agent-01-weekly-backtest

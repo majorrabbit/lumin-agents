@@ -1,0 +1,15 @@
+[Unit]
+Description=Lumin Agent 06 — Cultural Moment Detection (every 30 minutes)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Every 30 minutes — the fleet's real-time nervous system.
+# Agent 06 triggers Agents 02, 03, 11, and 12 when cultural moments peak.
+# AccuracySec is tight because moment detection latency matters.
+OnCalendar=*-*-* *:00,30:00
+AccuracySec=10s
+RandomizedDelaySec=5s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

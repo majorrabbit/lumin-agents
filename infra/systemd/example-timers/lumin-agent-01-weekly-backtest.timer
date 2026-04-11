@@ -1,0 +1,14 @@
+[Unit]
+Description=Lumin Agent 01 Resonance — Weekly Walk-Forward Backtest (Sundays 04:00 UTC)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Every Sunday at 04:00 UTC — walk-forward Brier score computation
+# Must not conflict with Agent 07's Sunday 05:00 UTC strategic report
+OnCalendar=Sun *-*-* 04:00:00
+AccuracySec=1m
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

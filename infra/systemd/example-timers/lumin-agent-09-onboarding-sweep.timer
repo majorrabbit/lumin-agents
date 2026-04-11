@@ -1,0 +1,13 @@
+[Unit]
+Description=Lumin Agent 09 — Daily Onboarding Sweep (14:00 UTC)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Daily at 14:00 UTC — after US East business morning, catches overnight signups
+OnCalendar=*-*-* 14:00:00
+AccuracySec=1m
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

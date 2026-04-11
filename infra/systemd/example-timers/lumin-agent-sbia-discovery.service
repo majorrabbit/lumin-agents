@@ -1,0 +1,28 @@
+[Unit]
+Description=Lumin SBIA — Weekly Convention Discovery Run
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lumin
+Group=lumin
+WorkingDirectory=/opt/lumin-agents
+EnvironmentFile=/opt/lumin-agents/.env
+# SBIA dispatches on trigger_type; the runner sets both task and trigger_type
+Environment=TASK=DISCOVERY_RUN
+
+ExecStart=/opt/lumin-agents/agents/agent-sbia-booking/venv/bin/python \
+          /opt/lumin-agents/scripts/run_agent.py \
+          agent-sbia-booking DISCOVERY_RUN
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/lumin-agents/agents/agent-sbia-booking
+TimeoutStartSec=900
+Restart=no
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lumin-agent-sbia-discovery

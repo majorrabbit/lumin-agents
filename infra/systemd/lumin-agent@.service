@@ -1,0 +1,47 @@
+[Unit]
+Description=Lumin Agent — %i
+Documentation=file:/opt/lumin-agents/docs/PATTERNS.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lumin
+Group=lumin
+WorkingDirectory=/opt/lumin-agents
+
+# Fleet-wide credentials and config. Per-agent overrides go in the task-specific
+# service file (see infra/systemd/example-timers/).
+EnvironmentFile=/opt/lumin-agents/.env
+
+# Default task: safest possible action for a manual `systemctl start`.
+# Override this per-timer via a companion service file or drop-in conf.
+Environment=TASK=status_check
+
+ExecStart=/opt/lumin-agents/agents/agent-%i/venv/bin/python \
+          /opt/lumin-agents/scripts/run_agent.py agent-%i ${TASK}
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+# Allow writes to the agent's own directory only (logs, cache, tmp files)
+ReadWritePaths=/opt/lumin-agents/agents/agent-%i
+
+# Agents may run Claude on large prompts — 15 minutes is generous but safe.
+# Agent 10's <60s SLA is enforced in the agent code, not here.
+TimeoutStartSec=900
+
+# Never restart automatically — scheduling is driven by timers.
+# A failed run should stay failed until a human investigates.
+Restart=no
+
+# Capture stdout/stderr in the journal
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lumin-agent-%i
+
+[Install]
+WantedBy=multi-user.target

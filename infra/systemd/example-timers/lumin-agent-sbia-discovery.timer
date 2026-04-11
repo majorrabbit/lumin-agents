@@ -1,0 +1,14 @@
+[Unit]
+Description=Lumin SBIA — Weekly Discovery Run (Mondays 13:00 UTC / 09:00 ET)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Every Monday at 13:00 UTC (09:00 ET) — convention discovery sweep
+# SBIA uses trigger_type instead of task — the runner handles both keys
+OnCalendar=Mon *-*-* 13:00:00
+AccuracySec=1m
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

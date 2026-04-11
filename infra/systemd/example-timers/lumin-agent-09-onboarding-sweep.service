@@ -1,0 +1,27 @@
+[Unit]
+Description=Lumin Agent 09 — Daily Onboarding Sweep
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lumin
+Group=lumin
+WorkingDirectory=/opt/lumin-agents
+EnvironmentFile=/opt/lumin-agents/.env
+Environment=TASK=daily_onboarding_sweep
+
+ExecStart=/opt/lumin-agents/agents/agent-09-customer-success/venv/bin/python \
+          /opt/lumin-agents/scripts/run_agent.py \
+          agent-09-customer-success daily_onboarding_sweep
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/lumin-agents/agents/agent-09-customer-success
+TimeoutStartSec=900
+Restart=no
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lumin-agent-09-onboarding-sweep

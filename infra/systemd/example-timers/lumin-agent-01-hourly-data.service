@@ -1,0 +1,27 @@
+[Unit]
+Description=Lumin Agent 01 Resonance — Hourly Data Collection
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lumin
+Group=lumin
+WorkingDirectory=/opt/lumin-agents
+EnvironmentFile=/opt/lumin-agents/.env
+Environment=TASK=hourly_data_collection
+
+ExecStart=/opt/lumin-agents/agents/agent-01-resonance/venv/bin/python \
+          /opt/lumin-agents/scripts/run_agent.py \
+          agent-01-resonance hourly_data_collection
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/lumin-agents/agents/agent-01-resonance
+TimeoutStartSec=600
+Restart=no
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lumin-agent-01-hourly-data

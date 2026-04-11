@@ -1,0 +1,13 @@
+[Unit]
+Description=Lumin Agent 09 — Weekly CS Digest (Mondays 13:00 UTC)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Every Monday at 13:00 UTC — weekly customer success digest for H.F. and Eric
+OnCalendar=Mon *-*-* 13:00:00
+AccuracySec=1m
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,23 @@
+[Unit]
+Description=Lumin Agent Timer — %i
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+# This template timer is rarely used directly.
+# Concrete, task-specific timers live in example-timers/.
+# Use this template only for one-off manual scheduling.
+
+[Timer]
+# Override OnCalendar in a drop-in or concrete timer file.
+# Default: monthly on the 1st at 06:00 UTC (safe for infrequent agents).
+OnCalendar=*-*-01 06:00:00
+
+# Allow systemd to shift the start time by up to 1 minute to avoid
+# thundering-herd if multiple timers fire simultaneously.
+AccuracySec=1m
+RandomizedDelaySec=30s
+
+# If the machine was off during a scheduled run, run once on next boot.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

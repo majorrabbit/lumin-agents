@@ -1,0 +1,13 @@
+[Unit]
+Description=Lumin Agent 01 Resonance — Daily Physics Update (02:00 UTC)
+Documentation=file:/opt/lumin-agents/infra/systemd/README.md
+
+[Timer]
+# Daily at 02:00 UTC — Boltzmann/entropy physics update runs at low-traffic hours
+OnCalendar=*-*-* 02:00:00
+AccuracySec=1m
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
