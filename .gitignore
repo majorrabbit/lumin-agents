@@ -1,0 +1,42 @@
+# Environment secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Python bytecode
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environments (each agent has its own)
+.venv/
+venv/
+agents/*/venv/
+agents/*/.venv/
+
+# Test / build artifacts
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# macOS cruft
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Coverage
+.coverage
+htmlcov/
+coverage.xml
+
+# Mypy
+.mypy_cache/
+
+# Logs
+*.log
