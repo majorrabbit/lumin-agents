@@ -189,7 +189,7 @@ before invoking any agent.
 | 10 | CyberSecurity | Lumin Luxe | Meta | Every 15m / Daily / Weekly | Complete — ZIP delivered |
 | 11 | Fan Discovery & Outreach | 2SATS | Fan Experience | Weekly / Event-driven | Complete — ZIP delivered |
 | 12 | Social Media Director | 2SATS | Fan Experience | Every 15m / Daily / Event-driven | Complete — ZIP delivered |
-| SBIA | SkyBlew Booking Intelligence | 2SATS | Revenue Operations | Mon 09:00 ET / Daily / Every 4h | Complete — ZIP delivered |
+| SBIA | SkyBlew Booking Intelligence | 2SATS (coord. Lumin Luxe) | Revenue Operations / Booking | Mon 09:00 ET / Daily 10:00 ET / Every 4h | Complete — ZIP delivered |
 
 **Layer key:**
 - **Strategic Intelligence**: Generates market signals and predictive models

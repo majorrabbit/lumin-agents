@@ -248,10 +248,22 @@ lumin/apple-music-token
 lumin/youtube-api-key
 lumin/soundcharts-api-key
 lumin/slack-webhook-resonance  ← per-agent Slack secrets
-sbia/web-search-api-key
-sbia/sns-alert-topic-arn
+sbia/web-search-api-key        ← Tavily or Brave Search API key (operator's choice)
+sbia/ses-sending-identity      ← Verified SES sender address (spec §3.5; not in code env vars)
+sbia/sns-alert-topic-arn       ← SNS topic ARN for H.F. hot-lead alerts
+sbia/slack-webhook-url         ← Optional Slack notifications (no dedicated env var)
+sbia/epk-s3-bucket             ← S3 bucket name for EPK assets (code also reads SBIA_EPK_BUCKET env var)
+sbia/dynamodb-conventions      ← Conventions table name (spec §3.5; code uses SBIA_CONVENTIONS_TABLE env var)
+sbia/dynamodb-outreach-log     ← Outreach log table name (spec §3.5; code uses SBIA_OUTREACH_LOG_TABLE env var)
 skyblew/voice-book             ← Agent 12: Voice Book stored in SM
 ```
+
+**Note:** For `sbia/ses-sending-identity`, `sbia/dynamodb-conventions`, and
+`sbia/dynamodb-outreach-log`, the engineering spec lists them as SM keys but
+the code does NOT call `_get_secret()` for them — it reads the env vars
+(`SBIA_FROM_EMAIL`, `SBIA_CONVENTIONS_TABLE`, `SBIA_OUTREACH_LOG_TABLE`) directly.
+The env var approach is correct per fleet conventions. The SM keys in the spec
+are aspirational "you could rotate these" items, not runtime requirements.
 
 ### What the shared library will provide
 
@@ -428,6 +440,14 @@ handles inside the relevant tool file, not in agent.py.
 |---|---|
 | `SBIA_CONVENTIONS_TABLE` | `sbia_conventions` |
 | `SBIA_OUTREACH_LOG_TABLE` | `sbia_outreach_log` |
+
+**SBIA DynamoDB schema note — variant convention:**
+Most fleet agents use generic `pk`/`sk` key names. SBIA uses a domain-specific
+schema with `convention_id` (UUID) as PK and `discovery_date` as SK on
+`sbia_conventions`, and `outreach_id` (UUID) as PK with `convention_id` as SK
+on `sbia_outreach_log`. This is intentional — the spec treats `sbia_conventions`
+as a pipeline CRM, not a generic audit log, and the domain-specific naming makes
+console queries more readable. Both are valid DynamoDB patterns.
 
 Note: Agents 2 and 8 share the `opp-catalog` table name (`CATALOG_TABLE`).
 This is intentional — they operate on the same OPP catalog.
@@ -708,7 +728,144 @@ called with a user_id: `agent = create_cs_agent(user_id=user_id)`.
 
 ---
 
-## 11. Testing Conventions
+## 11. SBIA-Specific Patterns (Variant Conventions)
+
+SBIA has the most complete engineering specification in the fleet.  Several
+of its design choices differ from the other 12 agents and must be treated as
+**intentional variants**, not deviations.
+
+### 11.1 Three-Lambda architecture (unified handler in EC2 mode)
+
+The spec describes three separate Lambda functions:
+
+| Lambda | EventBridge Trigger | Payload |
+|--------|---------------------|---------|
+| `sbia-main` | Every Monday 9:00 AM ET | `{"trigger_type": "DISCOVERY_RUN"}` |
+| `sbia-followup-dispatcher` | Every day 10:00 AM ET | `{"trigger_type": "FOLLOWUP_DISPATCH"}` |
+| `sbia-response-monitor` | Every 4 hours | `{"trigger_type": "INBOX_MONITOR"}` |
+
+In the code, all three are unified into a single `lambda_handler` that routes
+on `trigger_type`.  On EC2, the runner calls the unified handler with the
+appropriate payload.  On Lambda, the same handler can be deployed as either
+one function receiving three different EventBridge payloads OR three separate
+functions each pointing to `agent.lambda_handler` — both work identically.
+
+### 11.2 Rate limiting — tool-enforced, not agent-enforced
+
+SBIA enforces strict email rate limits at the `send_booking_email` tool level:
+
+| Limit | Value | Mechanism |
+|-------|-------|-----------|
+| Max emails/day | 50 | DynamoDB counter + TTL reset at midnight |
+| Max emails/hour | 5 | DynamoDB counter + 1h TTL |
+| Min days between touches | 7 | Checked before every send |
+| Max follow-ups per contact | 2 | Enforced by pipeline state machine |
+| DECLINED re-contact cooldown | 365 days | Status check before any outreach |
+| GHOSTED re-contact cooldown | 180 days | Status check before any outreach |
+
+These constants are defined in `tools/outreach_tools.py`:
+```python
+MAX_EMAILS_PER_DAY  = 50
+MAX_EMAILS_PER_HOUR = 5
+```
+
+### 11.3 dry_run safety protocol
+
+`DISCOVERY_RUN` accepts `{"trigger_type": "DISCOVERY_RUN", "dry_run": true}`.
+When `dry_run=True`, the agent discovers and scores conventions but **skips
+`send_booking_email()`**.  The pipeline prompt explicitly says:
+
+```
+"6. SKIP send_booking_email() — DRY RUN."
+```
+
+**Operational rule**: `dry_run=True` should be the default for at least the
+first two weeks of production operation.  SBIA sends emails to real booking
+contacts on behalf of SkyBlew.  A poorly timed or poorly composed email
+damages a real booking relationship.  Validate output in dry_run mode before
+enabling live sends.
+
+### 11.4 S3 EPK bucket layout
+
+SBIA requires EPK assets pre-loaded in S3 before going live.  The bucket name
+defaults to `sbia-epk-assets` (overridable via `SBIA_EPK_BUCKET` env var or
+`sbia/epk-s3-bucket` in Secrets Manager).  Required layout:
+
+```
+sbia-epk-assets/
+├── epk/
+│   ├── skyblew-epk-full.pdf          ← 4–6 page full EPK
+│   ├── skyblew-epk-one-pager.pdf     ← 1-page summary for cold outreach
+│   ├── skyblew-press-photo-1.jpg     ← 300 DPI, min 3000×3000 px (performance shot)
+│   ├── skyblew-press-photo-2.jpg     ← 300 DPI, min 3000×3000 px (promo/portrait)
+│   ├── skyblew-rider.pdf             ← Technical/hospitality rider
+│   └── skyblew-setlist-sample.pdf    ← 45-min and 60-min set options
+└── templates/
+    ├── email-initial-anime.txt
+    ├── email-initial-gaming.txt
+    ├── email-initial-general.txt
+    ├── email-followup-1.txt
+    └── email-followup-2.txt
+```
+
+**If the EPK bucket is empty or missing assets, every outbound email will
+contain a broken EPK link.**  Populate S3 before enabling live sends.
+
+### 11.5 Seed convention database
+
+The spec includes a pre-loaded Tier A / B / C convention target list (§8 of
+the engineering spec).  This list is NOT embedded in the code — it must be
+loaded into `sbia_conventions` as seed records at deploy time.
+
+| Tier | Count | Examples |
+|------|-------|---------|
+| A — Anime/Gaming (highest fit) | 12 | Anime Expo, MomoCon, Super MAGFest, PAX East/West |
+| B — Adjacent (strong opportunities) | 7 | Dragon Con, Comic-Con International, C2E2 |
+| C — Exploratory | 3+ | Christian music festivals, NACA/APCA college booking |
+
+Without the seed list, SBIA starts from zero on first run.  The agent
+will discover conventions through web search, but pre-seeding the Tier A list
+accelerates the pipeline significantly.
+
+### 11.6 CAN-SPAM compliance
+
+Every outgoing email must include a CAN-SPAM compliant unsubscribe note.
+This is enforced via the system prompt decision rule:
+```
+8. All emails include CAN-SPAM compliant unsubscribe note
+```
+The `compose_booking_inquiry` tool is responsible for generating this content.
+There is no dedicated opt-out list management in the current codebase — this
+is a known gap for v2.0.
+
+### 11.7 Web search API — Tavily or Brave (operator's choice)
+
+SBIA uses one of two search APIs for convention discovery:
+- **Tavily API** — recommended; purpose-built for AI agents
+- **Brave Search API** — alternative; broader web coverage
+
+The secret `sbia/web-search-api-key` holds whichever key the operator
+provisions.  The code reads this key at runtime and passes it to `httpx`
+HTTP calls in `discovery_tools.py`.  The engineering spec leaves the choice
+to the operator; the code is API-agnostic at the key-lookup level.
+
+### 11.8 Direct anthropic call in classify_response_sentiment
+
+`classify_response_sentiment` (crm_tools.py) makes a **direct** `anthropic.Anthropic`
+API call using `claude-sonnet-4-6` — it does not use the Strands Agent framework.
+This is intentional: the classification needs a short, structured JSON response
+(≤400 tokens) that is more efficiently handled via the raw messages API than
+through the full Strands agent loop.
+
+Compared to the fleet pattern, this could be `claude-haiku-4-5-20251001`
+(3× cheaper) without loss of classification quality.  The current code uses
+Sonnet — consistent with the engineering spec ("Uses Claude Sonnet to classify")
+but not consistent with the fleet-wide haiku-for-classification cost optimization.
+Changing to haiku is a future cost optimization opportunity, not a P3.x blocker.
+
+---
+
+## 12. Testing Conventions
 
 ### Framework: pytest with unittest.mock
 
@@ -758,7 +915,7 @@ Integration tests (Phase 3) will handle real-resource validation.
 
 ---
 
-## 12. Scheduled Task Cadence
+## 13. Scheduled Task Cadence
 
 | Agent | Schedule | Tasks |
 |---|---|---|
@@ -778,7 +935,7 @@ Integration tests (Phase 3) will handle real-resource validation.
 
 ---
 
-## 13. Cost Optimization Patterns (Built Into Every Agent)
+## 14. Cost Optimization Patterns (Built Into Every Agent)
 
 These patterns are already implemented — not aspirational. Every agent uses them.
 
@@ -810,7 +967,7 @@ Example: Agent 12's mention monitor checks DynamoDB before invoking the LLM.
 
 ---
 
-## 14. The Win³ Governing Principle
+## 15. The Win³ Governing Principle
 
 Every agent's behavior is ultimately governed by Win³:
 - **Win for the Artist**: Every action grows revenue, reputation, or relationships for SkyBlew and OPP artists.
@@ -824,7 +981,7 @@ action is not taken, and it escalates to H.F.
 
 ---
 
-## 15. What the Shared Library Will and Will Not Do
+## 16. What the Shared Library Will and Will Not Do
 
 ### Will build (Phase 1)
 
@@ -853,7 +1010,7 @@ action is not taken, and it escalates to H.F.
 
 ---
 
-## 16. Surprising Observations from the Survey
+## 17. Surprising Observations from the Survey
 
 These are patterns that were non-obvious and worth flagging explicitly:
 
@@ -890,6 +1047,18 @@ These are patterns that were non-obvious and worth flagging explicitly:
    comments explaining what each key holds. All other agents just reference
    them inline.
 
+11. **SBIA uses domain-specific DynamoDB key names** (`convention_id`/`discovery_date`
+    as PK/SK) instead of the generic `pk`/`sk` pattern used by every other
+    agent. This is not an inconsistency — SBIA's tables are designed as a
+    pipeline CRM, where readable key names matter for direct console access.
+    See §11 (SBIA-Specific Patterns) for full schema details.
+
+12. **SBIA will send real emails to real people** — it is the only agent in
+    the fleet that reaches outside the three-company ecosystem into the public
+    internet (booking contacts at third-party conventions). Every other agent's
+    outputs stay within the Lumin / OPP / 2SATS operational boundary. The
+    `dry_run` flag is the critical safety gate — see §11.3.
+
 9. **Agent 9 uses `max_tokens=2048`** while every other agent uses `4096`.
    Customer success conversations are meant to be brief and direct. This is
    a deliberate cost optimization, not an oversight.
@@ -901,5 +1070,5 @@ These are patterns that were non-obvious and worth flagging explicitly:
 
 ---
 
-*Last updated: Phase 0 discovery — April 2026*
-*Assembled from: 13 agent ZIPs + lumin_mas_architecture_guide.docx + lumin_adk_guide.docx + LuminAgentEngineeringSpecs1.pdf + lumin_ai_cost_report.docx*
+*Last updated: Phase 3.0 — April 2026 (SBIA engineering spec ingested)*
+*Assembled from: 13 agent ZIPs + lumin_mas_architecture_guide.docx + lumin_adk_guide.docx + LuminAgentEngineeringSpecs1.pdf + lumin_ai_cost_report.docx + booking_agent_md_file.docx (SBIA ADK Spec v1.0.0)*
