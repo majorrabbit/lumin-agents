@@ -1,0 +1,120 @@
+{
+  "agent-01-resonance": {
+    ".env.example": "sha256:b859cf6513e91e9bc2cfeeb73f333a321d3620ba630f7116794399c6f9c37798",
+    "agent.py": "sha256:7294e5c58d1eaed4059438bcbbd86fb99477d2b16f42a55d940ca4d8fd01d303",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/backtest_tools.py": "sha256:69d75c0600dad0a10e051c2bad6b92f8b2122650146abad4ee0f47192cde99da",
+    "tools/data_tools.py": "sha256:4c2e398f13b64f547b362fe0289d6dfbb3785bb50688ab6d58e16b5081672805",
+    "tools/physics_tools.py": "sha256:c94b90b9417f4284254627ce3708ba0fab05435735b5bbc907f7543653888738",
+    "tools/report_tools_resonance.py": "sha256:e3d8301893334559b1b65b35716e0cc1f8123a4ad92d1d08a53f04e199b17920",
+    "tools/trend_tools.py": "sha256:3dce1d5d17f429ca98dcdc185c098b3cdbf8ce53a53cc69f8d7d3d239b03cf38"
+  },
+  "agent-02-sync-brief": {
+    ".env.example": "sha256:acd19ce8ab61ddd8153d2ac571352586bdbbbf44c1ad8bf80a41d192a7ee0953",
+    "agent.py": "sha256:487b32eb1667b7fa14be379fdfa440191c7e00a79d7f170a84ad194d241a61b5",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/alert_tools_sync.py": "sha256:4b95221f9e316e3a638d9b649f3b36b2ff5f8b22011ae2554688c49e42c39980",
+    "tools/brief_tools.py": "sha256:f93437742d6d396aacc51f6688d94dbfd2b956d80f83ffde5eb42454b802eccc",
+    "tools/catalog_tools.py": "sha256:89726b5e13f9ae8d69df3626a59bb5e685e81a1a0447c567847e926868b93a9d",
+    "tools/submission_tools.py": "sha256:61091efe6d2d22d9369dcb28d8cebac6965e2f219461b8f70817ea42a10e91ed"
+  },
+  "agent-03-sync-pitch": {
+    ".env.example": "sha256:4a40c777f03fbe1ecc3232d8076c4ee94851da6eb950288bd1b31d49540203a4",
+    "agent.py": "sha256:a8cc1a29a55700843be80f50d6ea7c0349879cf80ea69638176a39140457657e",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "agent-04-anime-gaming": {
+    ".env.example": "sha256:96c997820012275484a450bd4df5665c22d6395fd8d56927b7532fbe2f1276b2",
+    "agent.py": "sha256:c5ddadbf610f8f8f536a0565386a6c55c88eec80160325231ad7bb86f76246c9",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "agent-05-royalty": {
+    ".env.example": "sha256:c945adf45add9f32c91da7045c3ee8c8a072f110e28dddb2c90a434b8e978e12",
+    "agent.py": "sha256:4feb28921b7aee2bd64ca0371474a0fad15cd47c022d34b14f841fc2c340680b",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "agent-06-cultural": {
+    ".env.example": "sha256:7db519f18e7e2b9e5a674fca03ce7717f3eabf0adce1992a30ca24ed3415e0df",
+    "agent.py": "sha256:747464ce87efd8cef3001bc90a3aeb93efc8d06cd7c34748e9b2e79155b66f4d",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "agent-07-fan-behavior": {
+    ".env.example": "sha256:bb0a72ae35247b7f7ffa7bff2babe57491e34d43f7cf4dcb6513b72a8502e390",
+    "agent.py": "sha256:5ea599388b6e5fccec938abee88aca04ae464ba7fec084457b39aac987e7e77f",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/clv_tools.py": "sha256:096f6466aee6f3a20f78b43bd14708a21e8aec280bb71861ae4a2c56942ca1f6",
+    "tools/genre_tools.py": "sha256:afe59636018127ca1f0103876d8afbdb6c3ea36827fb9a0fbe43398b0d7bba5e",
+    "tools/geo_tools.py": "sha256:996bdaedd86a14995c4f20c9cf563c3593102dfd0a4fe4cde971fd9a687e43e6",
+    "tools/report_tools.py": "sha256:a7b86d627a7dc32f8c272ea952037044f9eb088333f3fbebf03ee914df5d3b5f",
+    "tools/streaming_tools.py": "sha256:ab0d2a450df0c1523c26f3edde702c878ae28fcf9aa56eedc7fabb8058894a69"
+  },
+  "agent-08-ar-catalog": {
+    ".env.example": "sha256:b3d3104b88cd18752d56c79ad15bbb703f1ef651482381348c6799876cbfb548",
+    "agent.py": "sha256:343981bfc4a3c3dca46f98526adc847e804d9edbbe5f7846ede6ea626fabf064",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "agent-09-customer-success": {
+    ".env.example": "sha256:30faa7470688e60859d915d8604cbdffeca0decdefb4e96c8acdf50773c6076a",
+    "agent.py": "sha256:37957855c7ec0827dd19946585ef8fe5f1e12429b61004f62669f446a02d6f0a",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/context_tools.py": "sha256:1cbfa1772217e46d3395a7dcb0eda6e4c8785a207559018ed0059565fdd8d088",
+    "tools/metrics_tools.py": "sha256:4ad6b3eb6ef3f633442af640c8506d8eae67522c25a7dd96fafb64e5dcf809e7",
+    "tools/onboarding_tools.py": "sha256:6989ce641f19a23216b2e1c36a7a9f5887f25d69f069e49caf5ae9215fa07450",
+    "tools/retention_tools.py": "sha256:2d487d3c27731805d47bcca28312d6a1f55233a9ffb3f5e14568b3c445820375",
+    "tools/support_tools.py": "sha256:e9ccdc817758a4505f72bdf5d3791a9ab68ae1c45a36b1b7be81b8724acbd531"
+  },
+  "agent-10-cybersecurity": {
+    ".env.example": "sha256:e7ed991d391642eb3f1c9c7fa82557d409e5e0269080d8e36734db009bbecf78",
+    "agent.py": "sha256:0671bd293b45322413de167ab59f0183e2765c83b43c4cc44954b1be3bb84ab3",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/alert_tools.py": "sha256:52be825205c186f0ff3b42b49a36eaead8a161abc02ed72de0e3a48ea17eda19",
+    "tools/content_tools.py": "sha256:2b2098b05d074c521b9a37a08f52e02a45d4bf30bb00683a8e8178aa10cb3043",
+    "tools/fraud_tools.py": "sha256:c5e6c12853737cd0cd59b7ac1eb22b4a16543934b5f4e2604abae877dc2f8cb9",
+    "tools/guardduty_tools.py": "sha256:4d3c7d788fbac1acfbebd3e3bc4d5f4225f8cf2032faa771a8abd8b52967c19a",
+    "tools/privacy_tools.py": "sha256:61dc8fa60318fbd0bc336811c076e54714aea447a47abb45197f98bfa1608d97",
+    "tools/session_tools.py": "sha256:c81448d27ce4e2afafaa48a002caeecd94c21ffc9d88ffb03d6bcc45051f5263",
+    "tools/waf_tools.py": "sha256:517453aeeac4a796e069c4814b19f14109b46d5307685a5e3f6f8130d47086ee"
+  },
+  "agent-11-fan-discovery": {
+    ".env.example": "sha256:86f63c60203e07d2696a35759c918981a072f4bf290a9017256f699373e6e2ee",
+    "agent.py": "sha256:7d10acc29aabd8855e75f1e92cc84d5d31cd30ec621e7679ad75bd90203a37fa",
+    "requirements.txt": "sha256:0ba40510f2ce0bfa5a29976fa0b960fb0c7387c57b6befe81e84fd738a4c8868",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/discovery_tools.py": "sha256:07a9b2db623390d4c3b1fc4b6ba983d5a82e1eab66ca12975bdf89a402bc65cc",
+    "tools/distribution_tools.py": "sha256:ff7ef950423a307c3f4de9296f17c7d12f76b6bfd6c17a175025cd4cd7d78dd9",
+    "tools/outreach_tools.py": "sha256:c5a707bba89781d42e9be5ec9297c3f85826e8c90d133aee418ea0aa96c75292",
+    "tools/tracking_tools.py": "sha256:b9677d9d9adff2003576002fd120a3ca1e25258c510f1c1160da7b223c005fc9"
+  },
+  "agent-12-social-media": {
+    ".env.example": "sha256:a9c4630b743448c08c88786df36b0a88b126fda33a278ac5aba5e108d9ffeee0",
+    "agent.py": "sha256:692a56b58bb46c2f767c4d31ba50b78150ccf2275c8d720d95d323faa5f63faf",
+    "requirements.txt": "sha256:48b5ab139d44fa97dbae47d9c05ae3588805a17bbfe08172293a092e2e5257a7",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/analytics_tools.py": "sha256:1182756241f0abd532fd556105a9b4f2c84006b56369fc1f4ce9fc93ce6536b0",
+    "tools/campaign_tools.py": "sha256:c208654d82d120bc02b4e57eb53fad1f0193125725906af48f90e1f2fcb463af",
+    "tools/content_tools.py": "sha256:33f7ca38dcaf6b390a28a9482dc0286d3c550168cb62de5c4d00a589ad479358",
+    "tools/monitoring_tools.py": "sha256:5d7b4c671286fb1f937f9f0df478cdb1903d1072adb0764c23cbb6eddcbe5b29",
+    "tools/platform_tools.py": "sha256:665e2bdddf6dcbeae6ce7c2bb41507a79c3ffb181e798c10f9e0d364ecc841b8",
+    "tools/voice_tools.py": "sha256:94636451ec34dfa5b9c852a884529dd51a72fbd8ecacc8a25e88d0b2c0cf7337"
+  },
+  "agent-sbia-booking": {
+    ".env.example": "sha256:e023ad410b681637e1ae8345c0f8ef258de21614193d5315569e9bd8fcb26fc9",
+    "agent.py": "sha256:f583186204c147330fc477645673a2b20e781cf4a5a4febf64d8793ccb5c5f7c",
+    "requirements.txt": "sha256:4c2ec53707a0ebba63413ad9d63f620b8c421628462160da134572f395b34463",
+    "tools/__init__.py": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tools/alert_tools.py": "sha256:13116ff00fca1316347bf771f9d67d78427e0fdb510a3a0e56233204982132b4",
+    "tools/crm_tools.py": "sha256:8eae1205fed59cad7940a6040f775a4a0589ed70d8fa72076b510a9d9896f1fc",
+    "tools/discovery_tools.py": "sha256:11d159565e6ce6f1c174fc0b4c1e40a5711789f4f413b45d55f3a2d864cce1bc",
+    "tools/outreach_tools.py": "sha256:67af6d9dcbeed7846af77aca94efb5e73191e790512b14a1b30cbc4f2b64b4d9"
+  }
+}
