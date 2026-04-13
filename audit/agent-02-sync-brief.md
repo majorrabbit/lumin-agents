@@ -119,3 +119,52 @@ Agent 06 (Cultural Moment peak)
 - [ ] Run `python scripts/run_agent.py agent-02-sync-brief brief_scan` and verify clean JSON response
 - [ ] Install and enable systemd timer `lumin-agent-02-sync-brief-four-hour-scan.timer`
 - [ ] Verify the first scheduled 4-hour run completes successfully and logs to CloudWatch
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 02 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**Tier 1 brief alerts (these need your action within 4 hours). The pending approval count for submission packages. Any brief with < 6 hours remaining flagged as DEADLINE CRITICAL.**
+
+### Canonical Slack Channel
+
+**`#sync-queue`** — H.F. checks at **7:30am** in the morning workflow. TIER 1 brief alerts (major streaming platform, >$5K fee, cultural relevance) appear here. DEADLINE CRITICAL warnings fire when a brief has < 6 hours remaining and have not yet received a submission. **`#pending-approvals`** receives submission package approval requests — H.F. selects approve or decline before any package is sent.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Brief scan log (CloudWatch) | Every 4 hours |
+| TIER 1 brief alert to `#sync-queue` | Only when a qualifying brief is found — typically 0–5 per week |
+| DEADLINE CRITICAL warning | Only when a brief has < 6 hours remaining |
+| Submission package approval request in `#pending-approvals` | Each time a TIER 1 match is packaged |
+
+If `#sync-queue` shows **no activity for 2+ weeks**, either no qualifying briefs exist on monitored platforms (possible during slow periods) or the scanning logic is failing silently.
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] First 4-hour scan runs within 4 hours of deployment and logs to CloudWatch with no `"error"` key
+- [ ] A scan result (even "no briefs found today") posts to `#sync-queue` within 8 hours of deployment
+- [ ] At least one `sync-briefs` table record exists after the first successful run
+- [ ] **Approval gate verified**: manually inject a test TIER 1 brief event and confirm the submission package lands in `#pending-approvals` with approve/decline buttons — confirm it is NOT sent to any brief platform before H.F. approval
+- [ ] systemd timer active for every-4-hour scan cadence (`systemctl list-timers | grep agent-02`)
+- [ ] `opp-catalog` table is seeded and Agent 02 returns catalog matches in the smoke test response
+
+### Red Flags
+
+- **No briefs surfaced for 2 consecutive weeks** — verify platform scanning is not being rate-limited; check CloudWatch logs for 429 or connection errors from brief platforms.
+- **A submission package is sent without H.F. approval** — this is architecturally blocked (BDI-O Obligation). If it happens anyway, pause Agent 02 immediately and audit `sync-submissions` table for unauthorized entries.
+- **DEADLINE CRITICAL brief fires but H.F. sees it after the window closes** — verify Slack webhook is posting to `#sync-queue` in real time and H.F. has urgent-keyword notifications enabled for that channel.
+- **Brief rejection rate consistently above 80%** — `opp-catalog` tags may not match brief category requirements; route to Agent 08 for catalog gap analysis.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+The Operations Guide interaction map (Section VII) confirms:
+- **Agent 06 → Agent 02**: cultural moment signal triggers immediate brief scan — confirmed in audit §5 ✓
+- **Agent 02 → Agent 08**: brief rejection patterns identify catalog gaps — confirmed in audit §5 ✓
+
+No discrepancies between the Operations Guide and audit §5.

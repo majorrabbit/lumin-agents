@@ -147,3 +147,53 @@ Blocking dependency: Chartmetric paid subscription approval. All other steps can
 - [ ] Run `python scripts/run_agent.py agent-01-resonance hourly_data_collection` and verify JSON response with no `"error"` key
 - [ ] Install systemd timers from `infra/systemd/example-timers/` and enable them
 - [ ] Verify the first scheduled hourly run completes successfully and writes at least one record to `resonance-trend-signals`
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 01 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The Brier score trending over time. A Brier score below 0.20 is strong predictive accuracy. Phase transition alerts for genres relevant to OPP's catalog — these are the moments to move on sync pitches immediately.**
+
+### Canonical Slack Channel
+
+Agent 01 does not post to a morning-workflow Slack channel. High-confidence phase-transition alerts route via **SNS `lumin-resonance-alerts` → H.F. email** directly. The weekly Brier score report arrives as an email digest. Check your inbox — not Slack — for Agent 01 outputs.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Hourly data collection (CloudWatch log) | Hourly |
+| Phase transition alert (SNS email) | Only when signal crosses threshold — typically 1–5 per week |
+| Weekly Brier score update | Every Sunday 04:00 UTC |
+| Monthly investor-grade accuracy report | First week of each month |
+
+If H.F. sees zero phase transition alerts in 7 days, that is normal — the model is watching and not finding threshold crossings. If the weekly Brier score email stops arriving, something is broken.
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] At least one successful hourly data collection run visible in CloudWatch within 2 hours of deployment
+- [ ] At least one record written to `resonance-trend-signals` DynamoDB table after the first run
+- [ ] `resonance-model-params` table receives a Boltzmann distribution update within 24 hours — this is the signal Agent 06 calibrates against; without it, cultural moment detection runs uncalibrated
+- [ ] systemd timers confirmed active for: hourly data collection, daily 02:00 UTC physics update, Sunday 04:00 UTC weekly backtest
+- [ ] SNS topic `lumin-resonance-alerts` has H.F.'s email subscribed and confirmed (send a test publish to verify)
+- [ ] No `"error"` key in any run's JSON response (check CloudWatch Logs)
+
+### Red Flags
+
+- **Brier score does not improve after 8 consecutive weekly backtests** — model is not learning; review Chartmetric data quality and walk-forward window size parameters.
+- **Chartmetric or Soundcharts API returns errors >20% of hourly runs for 48 hours** — subscription or quota issue; investigate API dashboard.
+- **`resonance-model-params` table is not being written** — Agent 06 and Agent 07 lose their upstream calibration signal; cultural moment detection and CLV models will drift. Flag immediately.
+- **Sunday 04:00 UTC backtest timer does not fire** — systemd unit may have failed; check `journalctl -u lumin-agent-01-resonance-backtest.timer`.
+- **Phase transition alert fires for a genre with no OPP catalog match** — the signal is real; the gap is the finding. Forward to Agent 08 for catalog gap tracking.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+The Operations Guide interaction map (Section VII) confirms two output paths from Agent 01:
+1. **Agent 01 → Agent 06**: entropy baseline calibration — confirmed in audit §5 ✓
+2. **Agent 01 → Agent 07**: market temperature data — confirmed in audit §5 ✓
+
+No discrepancies between the Operations Guide and audit §5.

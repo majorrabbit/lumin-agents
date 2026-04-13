@@ -161,3 +161,57 @@ Agent 11 (fan engagement discovery)
 - [ ] Verify a drafted post appears in `skyblew-approval-queue` and routes correctly to the approval Slack channel
 - [ ] Test one full cycle: draft → H.F. approves → `post_approved_message()` → `log_post_performance()`
 - [ ] Install and enable systemd timer for 15-minute monitoring cadence
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 12 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**Voice acceptance rate: the percentage of Agent 12's drafts you approve without edits. Target is 80%+ — if it drops below 60%, the Voice Book needs updating in the next Sunday Review. Any fan art discovery: these are the highest-value organic engagements and deserve personal celebration. The MoreLoveLessWar deployment count — how many times per week is the song being surfaced to cultural moments.**
+
+### Canonical Slack Channel
+
+**`#pending-approvals`** — H.F. checks at **7:00am** (first stop in morning workflow). Every piece of content Agent 12 generates — social captions, TikTok hooks, Twitter reflections, YouTube Community posts, Discord messages, Threads narratives — lands here before any platform receives it. The Sunday 6pm UTC content calendar generation also routes here for the weekly review with SkyBlew. Cultural moment content arrives with an URGENT flag and must be approved **within 2–4 hours**.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Content drafts to `#pending-approvals` | Daily (3+ posts across platforms) |
+| Fan interaction response drafts to `#pending-approvals` | Daily (as fan art/mentions are discovered) |
+| Cultural moment content bundle (URGENT) to `#pending-approvals` | Event-driven (when Agent 06 fires) — within T+0:10 |
+| Weekly content calendar to `#pending-approvals` | Sundays 6pm UTC (Sunday Review trigger) |
+| Monday performance digest | Mondays 9am |
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] First content queue run completes and logs to CloudWatch with no `"error"` key
+- [ ] At least one content draft appears in `skyblew-approval-queue` DynamoDB table after the first run
+- [ ] Draft posts route to `#pending-approvals` with approve/edit/decline options
+- [ ] **Approval gate verified**: confirm that no post is published to any platform without H.F. approval — check that `post_approved_message()` is only reachable after H.F. approval action in `#pending-approvals`
+- [ ] Voice Book (`skyblew/voice-book` Secrets Manager secret) is seeded with content before first generation run — verify `load_voice_book()` returns non-empty content
+- [ ] Test one full cycle: draft → H.F. approves in Slack → `post_approved_message()` → `log_post_performance()` → `skyblew-post-performance` receives a record
+- [ ] Sunday 6pm UTC content calendar generation timer is active and confirmed to trigger the weekly calendar generation
+- [ ] 15-minute mention monitoring timer is active
+- [ ] MoreLoveLessWar FM & AM campaign shows `STATIC` or `MYSTERY` phase (not BROADCAST/STORY/ARCHIVE — these require `APPLE_MUSIC_CONFIRMED=true`)
+
+### Red Flags
+
+- **Voice acceptance rate drops below 60%** — the Operations Guide is explicit: this is the signal the Voice Book needs updating before the next Sunday Review. Do not dismiss 2 consecutive weeks below 60% without a Voice Book update session with SkyBlew.
+- **A post is published to any platform without H.F. approval** — this is a BDI-O Obligation violation and the most catastrophic failure mode for a fan-facing agent. Pause Agent 12 immediately; audit all platform post logs; identify and close the bypass path.
+- **MoreLoveLessWar FM & AM campaign advances to BROADCAST phase before `APPLE_MUSIC_CONFIRMED=true`** — the Apple Music gate is a hard stop; the campaign must not broadcast to fans who cannot stream the album on Apple Music.
+- **Sunday 6pm UTC content calendar does not appear in `#pending-approvals`** — the Sunday Review ritual is blocked; H.F. and SkyBlew have nothing to review. Check the systemd timer for the Sunday generation task.
+- **Fan art discovery stops appearing** — the Operations Guide calls fan art discoveries "the highest-value organic engagements." If none appear for 2 weeks, Agent 11's fan art surfacing pipeline may be broken.
+- **Claude API cost for Agent 12 exceeds $15/month** — agent is generating excessive token volume; investigate whether the 15-minute mention scan is triggering on non-qualifying interactions.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+The Operations Guide interaction map (Section VII) confirms all inputs to Agent 12:
+- **Agent 06 → Agent 12**: cultural moment signal triggers real-time content generation — confirmed in audit §5 ✓
+- **Agent 07 → Agent 12**: genre affinity and geo-cohort personalizes content calendar — confirmed in audit §5 ✓
+- **Agent 11 → Agent 12**: fan art detections surface for resharing — confirmed in audit §5 ✓ (Note: this connection is missing from Agent 11's §5; documented there in its new §10)
+
+No discrepancies between the Operations Guide and audit §5 for Agent 12's inputs.

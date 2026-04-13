@@ -130,3 +130,55 @@ Agent 01 (Boltzmann temperature signal)
 - [ ] Deploy Agent 01 first — Agent 07 uses Agent 01's Boltzmann temperature signals for CLV calibration
 - [ ] Install and enable systemd timers for daily (07:00 UTC), weekly (Sunday 06:00 UTC), and monthly (1st 08:00 UTC) runs
 - [ ] Verify first weekly CLV run completes and writes `fan-clv-model` records that Agent 11 can read
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 07 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The churn risk list: any Core fan showing declining engagement is worth a personal touch. The geographic growth leaders — Japan and Philippines showing fastest growth right now. The conversion rate from Casual to Engaged: this is the most actionable lever for fan growth.**
+
+### Canonical Slack Channel
+
+Agent 07 posts daily/weekly/monthly reports via **S3 `lumin-fan-intelligence`** bucket and an associated Slack channel. The daily churn risk alert goes to `#pending-approvals` if Agent 07 drafts a proactive outreach message for H.F. review (via the Agent 09 connection — see §5 addition below). Weekly and monthly strategic reports are delivered to `#fan-intelligence` (async, not part of morning workflow).
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Daily FES score update + churn risk flags | Daily 07:00 UTC |
+| Weekly CLV report by geographic cohort | Sundays 06:00 UTC |
+| Monthly strategic fanbase report | 1st of month 08:00 UTC |
+| On-demand app personalization update | Event-driven |
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] Daily 07:00 UTC metrics run completes within 30 minutes of schedule and logs to CloudWatch with no `"error"` key
+- [ ] At least one FES record written to `fan-behavior-metrics` table after the first daily run
+- [ ] `SKYBLEW_CM_ID` is confirmed correct — the daily run returns Chartmetric data for SkyBlew specifically (not a wrong artist or error)
+- [ ] `fan-clv-model` table receives records after the first Sunday 06:00 UTC CLV run — Agent 11 is unblocked for community prioritization
+- [ ] `fan-genre-affinity` table receives records — Agent 12 is unblocked for content calendar targeting
+- [ ] S3 bucket `lumin-fan-intelligence` receives at least one report object within 48 hours
+- [ ] systemd timers confirmed active for: daily (07:00 UTC), weekly Sunday (06:00 UTC), monthly 1st (08:00 UTC)
+
+### Red Flags
+
+- **`SKYBLEW_CM_ID` returns data for the wrong artist** — all CLV, FES, and geo cohort models are corrupted; downstream agents (11, 12) receive poisoned targeting signals. This is the highest-risk failure mode for this agent. Verify the artist ID before any downstream agent goes live.
+- **`fan-clv-model` table is empty after the first weekly run** — Agent 11 has no community prioritization data; all outreach defaults to equal-weight targeting.
+- **Japan and Philippines do not appear in the geographic growth leaders within the first month** — the Operations Guide specifically calls out these markets; if they're absent, verify that Chartmetric geo data is being pulled for the correct artist.
+- **Core fan churn risk list is always empty** — the model may not be computing FES drops correctly; every fan cohort should show some variance in engagement scores.
+- **Weekly CLV report does not arrive in `#fan-intelligence` on Sunday** — systemd timer for the Sunday run may have failed; check `journalctl`.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+**ADDITION — not in original audit §5:**  
+The Operations Guide Section VII interaction map documents **Agent 07 → Agent 09**: "Declining usage triggers proactive CS outreach." This connection was not present in the original audit §5 (which listed only Agents 11 and 12 as consumers of Agent 07's data). In the guide, when Agent 07 detects a declining-usage Core fan, it surfaces that signal to Agent 09 (AskLumin Customer Success), which drafts a proactive outreach message for H.F.'s approval. This integration is not yet in the current Agent 07 or Agent 09 code. It is a Phase 6 target.
+
+Confirmed connections from Operations Guide (all also in audit §5):
+- **Agent 01 → Agent 07**: market temperature data — confirmed ✓
+- **Agent 07 → Agent 11**: CLV by cohort prioritizes outreach — confirmed ✓
+- **Agent 07 → Agent 12**: genre affinity and geo-cohort personalizes content calendar — confirmed ✓
+- **Agent 07 → Agent 09** [ADDITION]: declining usage triggers proactive CS outreach — NOT in audit §5; Phase 6 target

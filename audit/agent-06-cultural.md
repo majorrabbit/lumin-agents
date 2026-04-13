@@ -119,3 +119,69 @@ Agent 01 (Boltzmann baseline)
 - [ ] Install and enable systemd timer for 30-minute cadence
 - [ ] Confirm the first real run writes at least one record to `cultural-moments`
 - [ ] Wire Agent 06 trigger → Agents 02, 03, 11, 12 (Phase 6 integration task)
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Sections III and IV — Agent 06 profile + Central Signal Chain (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The convergence score and stage for any active cultural moments. How many times per week it fires for MoreLoveLessWar topics — this is a key health indicator for the song's cultural relevance. Whether the downstream agents (2, 3, 11, 12) are executing their responses within the window.**
+
+### Canonical Slack Channel
+
+**`#cultural-moments`** — H.F. checks at **7:15am** in the morning workflow. Any FORMING (convergence ≥ 0.50) or PEAK moment appears here. MoreLoveLessWar content queued by this trigger must be approved **within 2–4 hours** — the cultural window closes. The `#pending-approvals` channel receives the downstream content from Agents 11 and 12 that Agent 06's signal activated.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| 30-minute entropy scan (CloudWatch) | Every 30 minutes, 24/7 |
+| `#cultural-moments` Slack alert | Only when convergence ≥ 0.50 (FORMING) or ≥ 0.80 (PEAK) — expected 0–5 per week |
+| MoreLoveLessWar STANDING TIER 1 trigger | Any time a peace/conflict/unity/healing topic reaches any stage |
+| URGENT PEAK alert (2-4 hour window) | When a moment reaches PEAK stage |
+
+Agent 06 runs **every 30 minutes, 24 hours a day** — it is the most frequent agent in the fleet. The absence of `#cultural-moments` activity for a full week is meaningful, not a failure — it means no qualifying moments were detected.
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] First 30-minute scan runs within 30 minutes of deployment and logs to CloudWatch
+- [ ] At least one `cultural-moments` DynamoDB record written after the first run
+- [ ] A test FORMING-stage moment posts to `#cultural-moments` in the smoke test (inject a convergence score ≥ 0.50)
+- [ ] A test PEAK-stage moment generates URGENT flag and posts to `#cultural-moments` with the 2–4 hour window warning
+- [ ] MoreLoveLessWar triggers an immediate alert regardless of convergence score (STANDING TIER 1 designation verified)
+- [ ] systemd timer active for every-30-minute scan cadence
+
+#### T+0:00 to T+0:30 Activation Chain (Section IV — Central Signal Chain)
+
+When Agent 06 detects a PEAK cultural moment, the following downstream sequence must execute within 30 minutes. **This chain must be verified end-to-end before the deployment is considered successful:**
+
+| Time | What Must Happen |
+|------|-----------------|
+| **T+0:00** | Agent 06 fires. Entropy convergence ≥ 0.80. Alert posted to `#cultural-moments` with catalog match and URGENT flag. |
+| **T+0:01** | Agent 02 receives the trigger and immediately scans all platforms for open briefs matching the moment's theme. If found: URGENT submission package queued to `#pending-approvals`. |
+| **T+0:02** | Agent 03 receives the trigger and identifies which supervisors are working on relevant projects. Pitch variants queued to `#pending-approvals`. |
+| **T+0:05** | Agent 11 receives the trigger and generates community outreach messages for the relevant fan segments. Variants queued to `#fan-discovery-queue`. |
+| **T+0:10** | Agent 12 receives the trigger and generates content for all 6 platforms. Queued to `#pending-approvals` with URGENT flag. |
+| **T+0:30** | H.F. sees a bundled `#cultural-moments` digest: "Cultural Moment PEAK: [topic]. MoreLoveLessWar activated across 4 agents. [N] items queued for your approval." |
+
+**Note:** At Phase 2 deployment, the T+0 chain is wired but the downstream agents (02, 03, 11, 12) are on their own scheduled cycles — true real-time inter-agent triggering is a Phase 6 integration target. Verify the chain is functional before Phase 6 activation.
+
+### Red Flags
+
+- **Agent 06 fires fewer than once per week for MoreLoveLessWar topics** — this is the guide's explicit health indicator for the song's cultural relevance. If no MoreLoveLessWar triggers fire in 2 weeks, check whether the standing TIER 1 designation is correctly configured in the system prompt.
+- **FORMING/PEAK moment fires but downstream agents (02, 03, 11, 12) do not respond within the documented windows** — the inter-agent trigger chain is broken; investigate whether Kinesis or DynamoDB Streams trigger mechanism is functional.
+- **Agent 06 generates >5 false-positive FORMING alerts per week for 3 consecutive weeks** — entropy threshold may be too sensitive; reduce the convergence floor and review entropy convergence parameters with Eric.
+- **`cultural-entropy-log` table stops being written** — Agent 01 will lose its feedback loop calibration signal; both agents become uncalibrated simultaneously.
+- **30-minute timer gap > 60 minutes in CloudWatch** — systemd timer has failed; the fleet's cultural hub is offline.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+The Operations Guide interaction map (Section VII) confirms:
+- **Agent 01 → Agent 06**: entropy baseline calibration — confirmed in audit §5 ✓
+- **Agent 06 → Agents 02, 03, 11, 12**: cultural moment signal activates all four simultaneously — confirmed in audit §5 ✓
+- **Agent 06 → Agent 01** (feedback loop via `cultural-entropy-log`): confirmed in audit §5 ✓
+
+No discrepancies between the Operations Guide and audit §5. Agent 06 is the only agent with the bidirectional feedback loop with Agent 01.

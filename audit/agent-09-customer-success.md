@@ -131,3 +131,57 @@ AskLumin subscriber interaction (inbound message / scheduled trigger)
 - [ ] Run `python scripts/run_agent.py agent-09-customer-success daily_onboarding_scan` and verify clean JSON (post SyntaxError fix)
 - [ ] Test inbound support scenario: send a test subscriber message and confirm Agent 09 responds and logs interaction
 - [ ] Verify escalation path: trigger a scenario that exceeds Agent 09's resolution authority and confirm SNS alert fires
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 09 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The deflection rate: above 75% means Agent 9 is handling support effectively. NPS trending — the target is above 50. The churn risk list: any subscriber who represents more than $500 MRR is worth a personal call from H.F.**
+
+### Canonical Slack Channel
+
+**`#cs-escalations`** — escalations that Agent 09 cannot resolve (billing disputes, complex account issues, complaints). H.F. must respond to any escalation within the business day. **`#pending-approvals`** — any proactive outreach draft Agent 09 generates for a churn-risk subscriber lands here for H.F. approval before send. Neither channel is part of the morning workflow but should be checked at least once per business day.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Daily onboarding sweep (CloudWatch log) | Daily |
+| Daily churn risk scan (CloudWatch log) | Daily |
+| Onboarding progress report | Daily (Days 1–7 for new subscribers) |
+| Churn risk outreach draft to `#pending-approvals` | Only when a subscriber shows ≥3 churn signals |
+| Weekly NPS score and deflection rate digest | Weekly |
+| Escalation to `#cs-escalations` | Real-time, only when Agent 09 cannot resolve |
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] **SyntaxError in `tools/support_tools.py:557` is confirmed fixed** — the module imports cleanly (`python -c "import agents.agent_09_customer_success.tools.support_tools"` with no error)
+- [ ] Smoke test (`daily_onboarding_scan`) completes with no `"error"` key in CloudWatch
+- [ ] `ask-lumin-sessions` table is pre-populated with existing subscriber records before enabling real-time mode
+- [ ] Test inbound support: send a test subscriber message and confirm Agent 09 responds with a contextual reply logged to `ask-lumin-cs-tickets`
+- [ ] **Approval gate verified**: trigger a scenario where Agent 09 drafts a churn-risk outreach message — confirm it lands in `#pending-approvals` and is NOT sent automatically
+- [ ] Escalation path verified: trigger a scenario exceeding Agent 09's resolution authority and confirm SNS `lumin-cs-escalations` fires and H.F. receives the alert
+- [ ] systemd timers confirmed active for: daily onboarding sweep, daily churn scan, weekly NPS digest
+
+### Red Flags
+
+- **Deflection rate below 30% after Month 2** — Agent 09 is not resolving support effectively; review system prompt and add more resolution paths. This is the kill criterion from the deploy plan.
+- **NPS trending below 40 for 4 consecutive weeks** — subscribers are unhappy with the AskLumin experience; audit recent escalated tickets for patterns.
+- **A proactive churn-rescue email is sent without H.F. approval** — this is a BDI-O Obligation violation. Pause Agent 09 immediately; audit SES send logs.
+- **Any subscriber representing >$500 MRR in the churn risk list** — the Operations Guide calls this out as warranting a personal call from H.F. Do not let this subscriber churn without direct human contact.
+- **`#cs-escalations` is empty after 30 days of operation** — either all issues are being resolved (good) or the escalation path is broken (bad); verify by triggering a manual escalation scenario.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+**ADDITION — not in original audit §5:**  
+The Operations Guide Section VII interaction map documents **Agent 07 → Agent 09**: "Declining usage triggers proactive CS outreach." The original audit §5 described a loose coupling with Agent 01 (value demonstration in retention scenarios) but did not document the Agent 07 → Agent 09 signal. In the guide, when Agent 07 identifies a Core fan with declining engagement, it surfaces the signal to Agent 09, which drafts a proactive outreach message for H.F.'s approval. This integration is not yet in the current Agent 07 or Agent 09 code — it is a Phase 6 target.
+
+Confirmed existing connection (also in audit §5):
+- **Agent 01 → Agent 09** (loose): Resonance Analytics outputs referenced for subscriber value demonstration — confirmed in audit §5 (described as "loose coupling") ✓
+
+Addition from Operations Guide:
+- **Agent 07 → Agent 09** [ADDITION]: declining-usage signal triggers proactive CS outreach draft — NOT in audit §5; Phase 6 target

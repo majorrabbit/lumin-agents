@@ -116,3 +116,57 @@ External sources (ANN, Crunchyroll, IGDB, Spine Sounds partner email)
 - [ ] Confirm at least one Tier 1 opportunity (score ≥ 8) triggers a Slack alert in the smoke test
 - [ ] Install and enable systemd timer for weekly Monday scan
 - [ ] Review synthetic opportunity data in `scan_anime_announcements()` and `scan_game_releases()` — replace with live data sources in Phase 4
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 04 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**Match scores of 9-10: these are the deployments to act on immediately. The Spine Sounds Tokyo pipeline status — this is the Japan market gateway. Any Adult Swim, Netflix anime, or Major JRPG opportunity.**
+
+### Canonical Slack Channel
+
+**`#anime-gaming-intel`** — daily scan summaries and any score-8+ opportunity triggers an immediate alert. H.F. reviews asynchronously (not part of the 7:00am–8:15am morning window — check during the workday when time permits). Score 9-10 opportunities should be treated as time-sensitive and reviewed within the business day.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Daily scan summary to `#anime-gaming-intel` | Daily |
+| Score 8+ opportunity immediate alert | Only when a qualifying opportunity is found |
+| Score 9-10 "act now" alert | Rare — highest-priority, Adult Swim / Netflix / major JRPG only |
+| Spine Sounds Tokyo status check | Weekly |
+
+H.F. should see **at least one daily message** from `#anime-gaming-intel` even on quiet days ("no new Tier 1 opportunities"). Silence for 2+ days indicates the agent is not running.
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] First daily scout run completes within 24 hours of deployment and logs to CloudWatch
+- [ ] A scan summary (even "no new Tier 1 opportunities today") posts to `#anime-gaming-intel` within 24 hours
+- [ ] At least one record written to `anime-gaming-opportunities` table after the first run
+- [ ] systemd timer active for daily scout run
+- [ ] Inject a test event with a score 8+ opportunity and verify an immediate Slack alert fires to `#anime-gaming-intel` with the project details and match rationale
+- [ ] Spine Sounds Tokyo contact (`info@spinesounds.com`) is verified as reachable
+
+### Red Flags
+
+- **No daily summary in `#anime-gaming-intel` for 2+ consecutive days** — agent is not running; check systemd timer (`journalctl -u lumin-agent-04-anime-gaming.timer`) and CloudWatch.
+- **Score 9-10 opportunity appears in DynamoDB table but no Slack alert fires** — webhook may have expired; test the `SLACK_AG_WEBHOOK` immediately.
+- **Spine Sounds Tokyo pipeline shows no updates for 4+ weeks** — contact may be stale; verify `info@spinesounds.com` is still the correct address.
+- **All opportunities scoring 5-7 with no 8+ scores** — the synthetic data at launch will show some 8+ scores; if live data integration (Phase 4) produces only mid-range scores, the match criteria may need recalibration.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+**ADDITION — not in original audit §5:**  
+The Operations Guide Section VII interaction map documents **Agent 04 → Agent 08**: "Anime/gaming demand signals feed catalog gap analysis." This connection was not present in the original audit §5 (which stated "Writes to: None"). This integration does not exist in the current Agent 04 code. It is planned for Phase 6 (Intelligence Network Activation).
+
+Updated signal flow (Phase 6 target):
+```
+External sources (ANN, Crunchyroll, IGDB, Spine Sounds)
+  → Agent 04 (opportunity scoring + pitch draft)
+    → anime-gaming-opportunities → H.F. (manual review)
+    → [Phase 6] demand signal → Agent 08 (catalog gap analysis)
+```

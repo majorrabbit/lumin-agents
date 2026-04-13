@@ -115,3 +115,61 @@ Agent 02 (brief rejections) + Agent 03 (pitch outcomes)
 - [ ] Run `python scripts/run_agent.py agent-08-ar-catalog monthly_catalog_review` and verify clean JSON response
 - [ ] Verify `opp-catalog-gaps` receives at least one gap record in the smoke test
 - [ ] Set up monthly trigger (1st of month) via EventBridge or systemd timer
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 08 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The Elvin Ross agreement status — it should be SIGNED, not PENDING. The RE™ DNA filter scores for any artist under consideration. The passive licensing action list — YouTube Content ID and Musicbed/Artlist registration for OPP instrumentals is pure revenue waiting to be collected.**
+
+### Canonical Slack Channel
+
+Agent 08 delivers its monthly A&R strategy report via **SES email** to H.F. and posts a summary to `#ar-catalog` (async — not part of the morning workflow). On-demand artist scoring results post immediately to `#ar-catalog`.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Monthly A&R strategy report (SES email + `#ar-catalog` summary) | First week of each month |
+| Quarterly gap analysis report | Every 3 months |
+| On-demand artist RE™ DNA score | When H.F. requests a specific artist evaluation |
+
+Agent 08 is a **monthly agent**. H.F. should expect one substantial deliverable per month — a ranked gap report, emerging artist candidates, catalog performance equity analysis, and a 6-month priority action list.
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] Smoke test (`monthly_catalog_review`) runs and completes with no `"error"` key in CloudWatch
+- [ ] At least one record written to `opp-catalog-gaps` table after the smoke test
+- [ ] `opp-catalog` table is seeded and Agent 08 can read brief rejection patterns from `sync-briefs` (Agent 02's table)
+- [ ] Elvin Ross / Ronnie Garrett catalog integration status is seeded in `opp-catalog` table before first run (this is the spec's binding constraint)
+- [ ] On-demand artist scoring works: run a test artist through the RE™ DNA filter and verify a score is returned to `#ar-catalog`
+- [ ] systemd timer or EventBridge rule active for monthly trigger
+
+### Red Flags
+
+- **Elvin Ross / Ronnie Garrett agreement still shows PENDING after 60 days** — the Operations Guide calls this out as the #1 status item to watch; it unlocks the cinematic instrumental gap (OPP's most-requested brief type). This is a business action item for H.F., not an agent failure.
+- **Monthly report shows the same catalog gaps for 3 consecutive months with no new A&R targets** — either no new briefs are coming in (Agent 02 data is stale) or the Claude synthesis is not finding new artists; review system prompt for A&R discovery criteria.
+- **YouTube Content ID and Musicbed/Artlist registration action list has been on the report for 2+ months** — the Operations Guide calls this "pure revenue waiting to be collected." These are passive licensing registrations, not complex decisions; escalate to H.F. as an immediate action item.
+- **`opp-catalog-gaps` table remains empty after 2 months** — `sync-briefs` or `sync-pitches` tables may be empty (Agents 02/03 not writing); investigate upstream data sources.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+**TWO ADDITIONS — not in original audit §5:**  
+The Operations Guide Section VII interaction map documents two inputs to Agent 08 that were not in the original audit:
+
+1. **Agent 04 → Agent 08**: "Anime/gaming demand signals feed catalog gap analysis." Original audit §5 listed only Agents 02 and 03 as data sources for Agent 08. Agent 04's demand signals are not yet in the current code — Phase 6 target.
+
+2. **Agent 05 → Agent 08**: "Royalty performance data informs catalog equity." Original audit §5 did not list Agent 05 as a source. The royalty performance connection is not yet in the current code — Phase 6 target.
+
+Updated signal flow (Phase 6 target additions in brackets):
+```
+Agent 02 (brief rejections) + Agent 03 (pitch outcomes)
+  [+ Agent 04 (anime/gaming demand)] [+ Agent 05 (royalty performance)]
+  → Agent 08 (catalog gap inference)
+    → opp-catalog-gaps → H.F. (A&R decisions)
+    → opp-ar-targets → H.F. (signing/licensing pipeline)
+```

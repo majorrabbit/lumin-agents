@@ -114,3 +114,57 @@ PRO statement data (manual import or future API integration)
 - [ ] Confirm at least one issue record is written to `opp-royalty-issues` table in smoke test
 - [ ] Set up monthly trigger (1st of month) via EventBridge or systemd timer
 - [ ] Verify first real-data monthly run detects any actual MLC registration gaps in the OPP catalog
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 05 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The Apple Music delivery status for MoreLoveLessWar — this must be resolved before any promotional campaign can be effective. The MLC unmatched works count — each unmatched work is missing mechanical royalties every day it remains unregistered. Any discrepancy over $100 requires your personal review.**
+
+### Canonical Slack Channel
+
+Agent 05 posts to `#pending-approvals` for discrepancies requiring H.F. action. The monthly reconciliation report is also delivered by **SES email from `royalties@opp.pub`** to H.F. directly. There is no dedicated high-frequency Slack channel for Agent 05 — it is a monthly agent and its outputs are email-first.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Monthly reconciliation report (SES email to H.F.) | First week of each month |
+| Discrepancy escalation email (>$500 flags) | Only when a qualifying discrepancy is found |
+| MLC registration gap alert | Any time an unregistered work is detected in the monthly run |
+| Apple Music delivery status flag | Every monthly run until resolved |
+
+Agent 05 is a **monthly agent** — no daily or weekly Slack presence is expected. If H.F. receives the monthly email, the agent is working.
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] Agent deploys and the smoke test run (`monthly_reconciliation`) completes with no `"error"` key in the JSON response
+- [ ] At least one record written to `opp-royalty-issues` table in the smoke test (confirms discrepancy detection logic is live)
+- [ ] SES email from `royalties@opp.pub` is received by H.F. after the smoke test reconciliation run
+- [ ] systemd timer or EventBridge rule active for monthly trigger (1st of month)
+- [ ] `opp-royalty-statements` table is seeded with at least one real PRO statement — smoke test against live data produces a meaningful (non-synthetic) output
+- [ ] Apple Music delivery status for MoreLoveLessWar is flagged in the first report output (this is a standing CRITICAL flag until resolved)
+
+### Red Flags
+
+- **Monthly email from `royalties@opp.pub` does not arrive in the first week of the month** — agent failed to run; check EventBridge or systemd timer; check SES bounce logs.
+- **MLC unmatched works count increases month-over-month** — new tracks are being added to the catalog without MLC registration; the gap is compounding daily.
+- **Apple Music delivery status for MoreLoveLessWar still flagged after Month 2** — this is a business action item for H.F. to resolve with DistroKid, not an agent failure; but Agent 05 should keep surfacing it until the flag clears.
+- **Any discrepancy >$500 not escalated to H.F.** — the SES escalation email should fire automatically; if H.F. sees the DynamoDB record but received no email, the SES sender identity (`royalties@opp.pub`) may have a delivery issue.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+**ADDITION — not in original audit §5:**  
+The Operations Guide Section VII interaction map documents **Agent 05 → Agent 08**: "Royalty performance data informs catalog equity." This connection was not present in the original audit §5 (which stated "Writes to: None"). This integration does not exist in the current Agent 05 code. It is planned for Phase 6 (Intelligence Network Activation).
+
+Updated signal flow (Phase 6 target):
+```
+PRO statement data (manual import)
+  → Agent 05 (reconciliation + discrepancy detection)
+    → opp-royalty-issues → H.F. (escalation email)
+    → [Phase 6] royalty performance data → Agent 08 (catalog equity analysis)
+```

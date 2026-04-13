@@ -149,3 +149,64 @@ AWS WAF logs + GuardDuty + session table + CloudFront + Chartmetric streaming da
 - [ ] Set Agent 10 IAM role with cross-agent delete permissions on `fan-behavior-metrics`, `ask-lumin-cs-tickets`, `ask-lumin-onboarding` (for GDPR compliance)
 - [ ] Run `python scripts/run_agent.py agent-10-cybersecurity daily_guardduty_digest` and verify clean JSON response
 - [ ] Install and enable systemd timers for 15-min session scan and daily/weekly tasks
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Sections III and VI — Agent 10 profile + BDI-O authority discussion (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The CRITICAL and HIGH alert counts should be zero or very low in normal operation. Any content hash mismatch is a drop-everything event. The streaming fraud confidence scores for LightSwitch and MoreLoveLessWar — the BRC/Nintendo organic growth should register as legitimate (save rate normal, geographic distribution expected).**
+
+### Canonical Slack Channel
+
+**`#security-ops`** — H.F. checks at **7:45am** in the morning workflow. In normal operation, this channel should be **empty**. Any CRITICAL or HIGH alert requires **immediate escalation to Eric**. **`#security-alerts`** is a separate channel for CRITICAL-severity page notifications — this channel should receive direct SMS/push notifications for Eric at all times.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Daily security briefing summary to `#security-ops` | Daily |
+| Weekly comprehensive security digest (WAF, GuardDuty, fraud) | Weekly |
+| 15-minute session integrity scan (CloudWatch log) | Every 15 minutes |
+| Streaming fraud confidence report (LightSwitch + MoreLoveLessWar) | Weekly (Sundays 03:00 UTC) |
+| CRITICAL/HIGH alert to `#security-ops` and `#security-alerts` | Real-time, event-driven — rare in normal operation |
+| **Eric SMS page (CRITICAL events)** | Within 60 seconds of detection — see below |
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] All 5 code placeholders replaced (WAF ACL ID, CF distribution ID, GuardDuty detector ID, 2 SNS ARNs) — verify with a `grep -r "ACCOUNT\|EXXXXXX\|LUMIN-WAF\|LUMIN-GUARDDUTY"` before deployment
+- [ ] Daily GuardDuty digest runs and posts a briefing to `#security-ops`
+- [ ] `security-asset-hashes` table is seeded with SHA-256 hashes for all 5 protected assets before the first content integrity run
+- [ ] Daily 02:00 UTC content integrity run completes without false-positive tamper alerts (empty table = all assets "tampered" — the seeding step is critical)
+- [ ] **60-second Eric page verified**: trigger a test CRITICAL event and confirm Eric receives an SNS alert (SMS or email) within 60 seconds. This is the Agent 10 real-time SLA per the BDI-O authority discussion in Operations Guide §VI.
+- [ ] streaming fraud Sunday scan runs and posts confidence scores for LightSwitch and MoreLoveLessWar to `#security-ops`
+- [ ] systemd timers confirmed active for: 15-min session scan, daily 02:00 content integrity, daily 08:00 GuardDuty digest, Sunday 03:00 fraud scan
+- [ ] **Auto-block authority verified**: confirm that if a CRITICAL WAF/GuardDuty finding fires, Agent 10 logs the action AND notifies `#security-ops` — it does NOT wait for human approval before blocking (per BDI-O Obligation)
+
+### Red Flags
+
+- **Any CRITICAL or HIGH alert in `#security-ops`** — this is the primary operator action trigger. In normal operation this channel is empty. Any entry here requires immediate escalation to Eric.
+- **Content hash mismatch detected** — a drop-everything event. Agent 10 will automatically invalidate the CloudFront cache. H.F. and Eric are both alerted. Do not dismiss this alert without verifying asset integrity manually.
+- **Eric is not paged within 60 seconds of a CRITICAL event** — the Operations Guide (§VI) specifically states that CRITICAL security events must page Eric within 60 seconds. If this SLA is not met, the SNS topic `lumin-critical-page` subscription is not correctly configured.
+- **LightSwitch or MoreLoveLessWar streaming fraud confidence score increases to HIGH** — the BRC/Nintendo organic growth is expected to be flagged as legitimate; if confidence scores trend upward, investigate whether DSP anomaly detection is flagging legitimate organic growth.
+- **15-minute session scan timer shows a gap > 30 minutes in CloudWatch** — the fleet's fastest-running agent has stopped; security monitoring is offline. Alert Eric immediately.
+- **GDPR deletion request not completed within 72 hours** — the Operations Guide (§III) specifies a 72-hour completion window; check Agent 10's cross-agent table delete permissions.
+
+### BDI-O Auto-Block Authority (Per Operations Guide §VI)
+
+Agent 10 is the **only agent with autonomous action authority on confirmed threats**. Per the BDI-O architecture: the duty to protect the fleet overrides the overhead of human approval for time-sensitive security incidents. Agent 10 will:
+- **Block malicious IPs via WAF** without prior approval
+- **Invalidate CloudFront cache** on content hash mismatch without prior approval
+- **Log every autonomous action** to `security-events` table and post to `#security-ops` immediately after acting
+
+This is not a misconfiguration — it is an Obligation. Do not remove or add an approval gate to Agent 10's auto-block path.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+The Operations Guide interaction map (Section VII) confirms:
+- **Agent 10 → All**: security monitoring covers all agent data pipelines — confirmed in audit §5 (via GDPR cross-table reads) ✓
+
+The audit §5 also notes the GDPR deletion cross-table reads from `fan-behavior-metrics` (Agent 07) and `ask-lumin-cs-tickets` + `ask-lumin-onboarding` (Agent 09). The Operations Guide confirms this scope as the broadest IAM footprint in the fleet. No discrepancies.

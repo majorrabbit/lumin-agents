@@ -161,3 +161,57 @@ External web search (Tavily/Brave) + SES inbox
 - [ ] Maintain dry_run mode for minimum 14 days before enabling live sending
 - [ ] After dry_run validation: run `python scripts/run_agent.py agent-sbia-booking DISCOVERY_RUN` (live)
 - [ ] Install and enable EventBridge rules for Monday 09:00 ET, daily 10:00 ET, and 4-hourly inbox monitoring
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — SBIA profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The HOT LEAD inbox — this is the most time-sensitive item SBIA produces. Super MAGFest (music@magfest.org already known) and MomoCon are the two most likely early bookings given their music programming history and SkyBlew's fit. The pipeline status distribution: if 30+ conventions are in OUTREACH_SENT and none are moving to RESPONDED, the email templates may need refinement.**
+
+### Canonical Slack Channel
+
+**`#hot-leads`** — H.F. checks at **8:00am** in the morning workflow. Any booking inquiry that received an interested response (HOT LEAD) fires an immediate Slack + email alert. The full response email, sentiment classification, and suggested next action are provided. SBIA also posts the Monday weekly pipeline summary here.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| HOT/WARM lead alert (immediate) | Real-time — only when a convention responds with interest |
+| Monday weekly pipeline report to `#hot-leads` | Every Monday after discovery run |
+| Daily 10:00 ET follow-up dispatch log | Daily |
+| Every-4-hour inbox monitoring (CloudWatch log) | Every 4 hours |
+
+SBIA's most important output — a HOT LEAD — may not arrive for days or weeks after deployment. The pipeline needs time to develop. The Monday weekly report confirms the agent is running even during quiet periods.
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] First dry_run discovery run (`DISCOVERY_RUN, dry_run=true`) completes Monday 09:00 ET and logs to CloudWatch with no `"error"` key
+- [ ] At least 22 seed conventions exist in `sbia_conventions` table before the first discovery run
+- [ ] Dry-run report shows composed emails (not sent) for qualifying conventions — verify email content, tone, and CAN-SPAM compliance (unsubscribe note present)
+- [ ] `sbia_outreach_log` table receives records for each composed email in the dry-run
+- [ ] EPK S3 signed URL generation works: `generate_epk_signed_url()` returns a valid pre-signed URL for all 6 required EPK assets
+- [ ] 4-hour inbox monitoring is active: every-4-hour EventBridge trigger logs to CloudWatch
+- [ ] HOT LEAD alert path verified: manually set a test convention record to `status=RESPONDED, intent=Interested` and confirm an immediate Slack alert fires to `#hot-leads` with the full email context and suggested next action
+- [ ] **dry_run mode confirmed active for minimum 14 days** — `send_booking_email()` must NOT be called in any run until H.F. explicitly approves transitioning to live mode after reviewing dry-run email quality
+- [ ] `SBIA_FOLLOWUP_LAMBDA_ARN` contains no `ACCOUNT` placeholder — verified with `grep "ACCOUNT" .env`
+
+### Red Flags
+
+- **HOT LEAD alert fires but H.F. misses it** — SBIA's primary deliverable; ensure H.F. has mobile notifications enabled for `#hot-leads`. A HOT LEAD response window is time-sensitive (conventions often evaluate multiple performers simultaneously).
+- **Super MAGFest and MomoCon are not in the pipeline after the first Monday discovery run** — the Operations Guide specifically identifies these as the two most likely early bookings; their absence suggests the Tier A convention seed list was not loaded correctly.
+- **30+ conventions in OUTREACH_SENT status with no movement to RESPONDED after 3 weeks** — the email templates may need refinement; review the personalization and cultural fit messaging with H.F. before the next discovery cycle.
+- **`SBIA_FOLLOWUP_LAMBDA_ARN` placeholder was not replaced** — all 7-day follow-up emails will fail silently; conventions that should receive FOLLOWUP_1 will age out to GHOSTED. Verify with `grep` before enabling live sending.
+- **live_send enabled before 14-day dry_run validation** — SBIA sends real emails to real convention organizers; reputational damage from a poorly calibrated first run cannot be undone. Do not skip the dry_run period.
+- **SES bounce rate exceeds 5%** — SBIA's kill criterion; pause immediately, review email list quality, and re-warm sender reputation before resuming.
+
+### SBIA Isolation Note (Standalone Agent)
+
+SBIA is the only **fully isolated agent** in the fleet — it neither reads from nor writes to any other agent's tables or receives inter-agent triggers. This is by design: booking operations involve real contractual relationships and must not be triggered by market signals from other agents. The Operations Guide confirms this architecture. The planned v2.0 enhancement (feeding booking data into RESONANCE ANALYTICS and integrating with Agent 12 for confirmed-booking announcement content) is a Phase 6+ target.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+The Operations Guide interaction map (Section VII) does not list any connections to or from SBIA. This is consistent with the original audit §5 ("SBIA is the only fully isolated agent in the fleet"). No discrepancies. ✓

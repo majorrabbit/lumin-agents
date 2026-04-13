@@ -117,3 +117,52 @@ Agent 06 (Cultural Moment peak)
 - [ ] Send warm-up test emails via SES before first live pitch run
 - [ ] Install and enable systemd timer for weekly Monday pitch cycle
 - [ ] Verify the first scheduled weekly run completes and posts a summary to Slack
+
+---
+
+## 10. Dashboard Watch Items (Operator Acceptance Criteria)
+
+*Source: Lumin Agent Fleet Operations Guide, Section III — Agent 03 profile (April 2026)*
+
+### 👁 What to Watch on Your Dashboard
+
+**The pitch calendar: which supervisors are overdue for contact. The response tracking: any supervisor who replied (even a pass) represents a relationship warming. Watch particularly for Joel C. High — the Tyler Perry Studios pipeline depends on that relationship.**
+
+### Canonical Slack Channel
+
+**`#pending-approvals`** — every pitch email variant (3 options: precise, warm, expansive) routes here for H.F. selection before any send. H.F. checks at **7:00am** in the morning workflow. **`#sync-pitches`** receives weekly pitch cycle summaries and monthly relationship status reports.
+
+### Expected Cadence of Visible Output
+
+| Output | Frequency |
+|--------|-----------|
+| Weekly pitch cycle — 3 email variants per due supervisor to `#pending-approvals` | Every Monday |
+| Weekly pitch summary to `#sync-pitches` | Every Monday |
+| Follow-up prompt (7 days after unanswered pitch) | 7 days post-send |
+| Monthly pitch relationship history report | First week of each month |
+| Cultural moment event-driven pitch (Agent 06 trigger) | When Agent 06 fires a PEAK signal for a relevant topic |
+
+### First 48 Hours — Acceptance Criteria
+
+- [ ] First Monday pitch cycle runs and logs to CloudWatch with no `"error"` key
+- [ ] **Approval gate verified**: 3 pitch email variants (precise, warm, expansive) appear in `#pending-approvals` for each due supervisor — none sent until H.F. selects one
+- [ ] `sync-supervisors` table receives relationship records after first run
+- [ ] `sync-pitches` table receives draft records tied to each queued email
+- [ ] Weekly summary posts to `#sync-pitches` after the cycle completes
+- [ ] **Joel C. High (Tyler Perry Studios) appears in the first pitch cycle** — this is the highest-priority relationship; his absence from the first queue is a red flag
+- [ ] Test cultural moment path: inject a mock Agent 06 signal and verify pitch variants are queued in `#pending-approvals` but not sent
+
+### Red Flags
+
+- **A pitch email is sent to a supervisor without H.F. selection** — this is a BDI-O Obligation violation. Pause Agent 03 immediately; audit `sync-pitches` table for unauthorized `status=SENT` records.
+- **Joel C. High receives no outreach within 14 days of deployment** — the Tyler Perry Studios pipeline is gated on this relationship; it is the single most important supervisor contact in the queue.
+- **0% supervisor response rate after 4 weeks** — check whether `sync@opp.pub` has an SES reputation issue; verify pitch emails are reaching inboxes, not spam folders.
+- **Batch API result arrives after the cultural moment window closes** — Agent 03 uses Batch API (15–30 min delay); if an Agent 06 PEAK signal fires with a 2-hour window, verify the batch result is returned before the window closes.
+
+### Inter-Agent Dependency Note (Section VII Cross-Reference)
+
+The Operations Guide interaction map (Section VII) confirms:
+- **Agent 06 → Agent 03**: cultural moment signal triggers proactive supervisor pitch — confirmed in audit §5 ✓
+- **Agent 03 → Agent 08**: pitch outcome data (acceptance/rejection patterns) feeds Agent 08's A&R synthesis — confirmed in audit §5 ✓
+
+No discrepancies between the Operations Guide and audit §5.
