@@ -355,23 +355,24 @@ CloudFront: CreateInvalidation (for Agent 10 content integrity only)
 ### Slack Workspace
 
 - [ ] Slack workspace exists (or channels added to existing workspace)
-- [ ] Following channels created with webhook URLs generated and stored:
+- [ ] Following channels created with webhook URLs generated and stored in AWS Secrets Manager
 
-| Channel | Agent(s) |
-|---------|----------|
-| `#anime-gaming-intel` | Agent 04 |
-| `#royalty-alerts` | Agent 05 |
-| `#cultural-moments` | Agent 06 |
-| `#fan-intelligence` | Agent 07 |
-| `#ar-catalog` | Agent 08 |
-| `#cs-alerts` | Agent 09 |
-| `#security-alerts` | Agent 10 |
-| `#fan-discovery` | Agent 11 |
-| `#content-approval` | Agent 12 |
-| `#booking-pipeline` | SBIA |
-| `#resonance-alerts` | Agent 01 |
-| `#sync-briefs` | Agent 02 |
-| `#sync-pitches` | Agent 03 |
+The 10 canonical channel names below are taken directly from the Operations Guide (April 2026). These are the names H.F. will be looking for on Day 1 — use them exactly as written. Listed in morning workflow order (7:00am → 8:15am walk):
+
+| Channel | Time | Agent(s) | Purpose |
+|---------|------|----------|---------|
+| `#pending-approvals` | 7:00am | Agents 12, 11, 03, SBIA | **Primary approval queue.** Social captions, outreach messages, sync pitches, booking alerts. Review first, before anything else. |
+| `#cultural-moments` | 7:15am | Agent 06 | Cultural moment signals. FORMING or PEAK moments require action within 2–4 hours — the window closes. |
+| `#sync-queue` | 7:30am | Agent 02 | New sync briefs. TIER 1 briefs (major streaming, >$5K fee, cultural relevance) need action within 4 hours. DEADLINE CRITICAL means act now. |
+| `#security-ops` | 7:45am | Agent 10 | Security alerts. In normal operation this should be empty. Any CRITICAL or HIGH alert requires immediate escalation to Eric. |
+| `#hot-leads` | 8:00am | SBIA | Booking inquiries that received an interested response. Time-sensitive — SBIA has the full response email ready. |
+| `#fan-discovery-queue` | 8:15am | Agent 11 | Daily opportunity queue — outreach messages ready for approval. |
+| `#anime-gaming-intel` | async | Agent 04 | Weekly anime and gaming demand signals (not time-sensitive). |
+| `#sync-pitches` | async | Agent 03 | Completed sync pitch delivery confirmations and responses. |
+| `#cs-escalations` | async | Agent 09 | Subscriber escalations that AskLumin could not resolve. Requires human response within the business day. |
+| `#security-alerts` | async | Agent 10 | Critical security incident notifications (separate from ops channel for filtering). |
+
+> **Note:** Webhook URLs for all 10 channels must be stored in AWS Secrets Manager (key pattern: `lumin/slack/<channel-name>-webhook`). Prompt P3.6 will build the workspace setup automation using this exact channel list.
 
 ### EC2 Box
 
@@ -510,42 +511,80 @@ For the current fleet scale (13 agents, <100 cultural moment events/day), Dynamo
 
 ## 6. Operational Rhythm Post-Deployment
 
-Once the fleet is live, the human time commitment shifts from deployment to oversight. Here is the cadence:
+*Derived from Sections V and VI of the Lumin Agent Fleet Operations Guide (April 2026). The canonical acceptance test for the fleet is whether H.F. can sit down at 7:00am and execute the morning workflow as described below. If he cannot, the deployment has failed regardless of what `systemctl list-timers` says.*
 
-### Daily (15–20 minutes, H.F.)
+---
 
-Each morning, review the overnight Slack digest:
+### Daily Morning Workflow — 7:00am–8:15am (H.F.)
 
-1. **`#content-approval`** — Agent 12 drafts from overnight. Approve, reject, or revise each item. Time-sensitive: cultural moment content has a 2–4 hour window.
-2. **`#fan-discovery`** — Agent 11 outreach drafts. Approve authentic-feeling messages; reject anything that sounds promotional. Target: 1–3 approvals per day at launch.
-3. **`#booking-pipeline`** — SBIA hot/warm lead alerts. Any HOT lead (convention responded with interest) requires H.F. action within 24 hours.
-4. **`#security-alerts`** — Agent 10 HIGH/CRITICAL findings (rare). These are not optional reading.
-5. **`#cs-alerts`** — Agent 09 escalations. Any subscriber escalated by Agent 09 requires a human response within the business day.
+The agents run on their own schedules. H.F.'s job is not to watch them run — it is to review what they produced and make the decisions that require human judgment.
 
-### Weekly (30–45 minutes, H.F. + Eric)
+| Time | Channel | What to Review |
+|------|---------|---------------|
+| 7:00am | `#pending-approvals` | **Most important.** Social captions (Agent 12), outreach messages (Agent 11), sync pitches (Agent 03), SBIA booking alerts. Work through this first, before anything else. |
+| 7:15am | `#cultural-moments` | Has Agent 06 fired since yesterday? Any FORMING or PEAK moments? MoreLoveLessWar content queued here must be approved within 2–4 hours — the window closes. |
+| 7:30am | `#sync-queue` | New sync briefs from Agent 02. TIER 1 briefs (major streaming, >$5K fee, cultural relevance) need action within 4 hours. DEADLINE CRITICAL means act now. |
+| 7:45am | `#security-ops` | Alerts from Agent 10. In normal operation this should be empty. Any CRITICAL or HIGH alert requires immediate escalation to Eric. |
+| 8:00am | `#hot-leads` | SBIA booking inquiries that received an interested response. These are time-sensitive — SBIA has the full response email and suggested next action ready. |
+| 8:15am | `#fan-discovery-queue` | Agent 11's daily opportunity queue — outreach messages ready for approval. Select the ones that feel most authentic and appropriate. |
 
-Every Sunday:
-- Review Agent 07's weekly fan intelligence report (posted to `#fan-intelligence`)
-- Review Agent 12's weekly social media digest (what content performed)
-- Review Agent 01's Brier score update — is the prediction model improving?
-- Review Agent 11's conversion report — which communities are converting?
-- SBIA pipeline review — where are we in the booking funnel?
+**Total time:** 15–20 minutes on a normal day. Longer if Agent 06 has fired a PEAK moment or SBIA has HOT leads.
 
-### Monthly (2–3 hours, H.F. + Eric)
+---
 
-First week of each month:
-- **BDI-O audit:** Review all agent action logs. Are any Obligations being bypassed? Are any Desires drifting from Win³?
+### Sunday Review — The Creative Heartbeat (H.F. + SkyBlew, 30 min, 6:00pm UTC)
+
+Every Sunday evening at 6:00pm UTC, Agent 12 automatically generates the coming week's full content calendar and posts it to `#pending-approvals` for review. **This session — H.F. and SkyBlew together — is the creative heartbeat of the fan-facing operation. The agents handle all execution; this session is where the humans set the direction.**
+
+| Sunday Review Action | What to Do |
+|---------------------|-----------|
+| Review Agent 12's calendar draft | Look at every post for the coming week. Does it sound like SkyBlew? Does the FM & AM campaign feel right at this point? Are there cultural moments coming that the calendar should anticipate? |
+| Approve, edit, or replace | For each post: **approve** (goes out as-is at scheduled time), **edit** (make changes and approve revised version), or **replace** (generate a new option). Add posts the agent has not drafted. |
+| Voice Book update check | If more than 5 posts needed significant edits this week, that is a signal the Voice Book needs updating. Update `skyblew/voice-book` in AWS Secrets Manager with the phrases and tones that came up in your edits. |
+| SkyBlew's input window | This is SkyBlew's time to add anything personal — a thought that occurred to him, a lyric fragment, a reaction to something happening in the world that he wants to express. Agent 12 can build posts around these inputs for the coming week. |
+
+**Voice acceptance rate target:** ≥80% of Agent 12's drafts approved without edits. If the rate drops below 60% for two consecutive weeks, the Voice Book needs an update session before the next Sunday Review.
+
+---
+
+### Per-Agent Dashboard Watch Items
+
+The following table summarizes what H.F. should monitor for each agent post-deployment. These are the acceptance criteria for a "successfully deployed" agent — if these signals aren't visible, the agent isn't really delivered.
+
+| Agent | Key Metric to Watch | Alert Threshold |
+|-------|---------------------|-----------------|
+| **01 Resonance** | Brier score (weekly backtest) | Pause if no improvement after 8 consecutive weeks |
+| **02 Sync Brief** | TIER 1 briefs surfaced per week | Zero briefs for 2+ weeks → check Chartmetric API health |
+| **03 Sync Pitch** | Pitch approval rate in `#pending-approvals` | If H.F. is rejecting >50% of pitches → refine targeting prompt |
+| **04 Anime/Gaming** | New opportunity signals in `#anime-gaming-intel` | Silence for >2 weeks → check synthetic data refresh |
+| **05 Royalty** | Discrepancy flags in monthly report | Any flag >$500 requires H.F. personal review |
+| **06 Cultural** | Moments detected per week | False positives >5/week for 3 weeks → reduce sensitivity threshold |
+| **07 Fan Behavior** | Weekly cohort report delivery | Missing report → check DynamoDB attribution table health |
+| **08 A&R** | Quarterly gap report generated | No report after month 3 → check upstream data from Agents 02, 06 |
+| **09 CS (AskLumin)** | Deflection rate (% resolved without escalation) | Below 30% after Month 2 → review system prompt and resolution paths |
+| **10 CyberSecurity** | `#security-ops` daily status | Any CRITICAL/HIGH alert → escalate to Eric immediately |
+| **11 Fan Discovery** | Outreach approvals per day | Zero approvals for 3+ days → check TikTok/Reddit API health |
+| **12 Social Media** | Voice acceptance rate (% drafts approved without edit) | Below 60% → Voice Book update needed |
+| **SBIA** | HOT leads per month | Zero HOT leads after 60 days → review outreach email quality and convention targeting |
+
+---
+
+### Monthly (First Week of Month, 2–3 hours, H.F. + Eric)
+
+- **BDI-O audit:** Review all agent action logs. Are any Obligations being bypassed? Are any Desires drifting from the Win³ principle?
 - **Cost reconciliation:** Compare actual AWS + Anthropic spend against estimates. Investigate any line items exceeding 150% of estimate.
-- **Agent 05 royalty reconciliation:** Review discrepancy report. Any flags >$500 require H.F. action.
-- **Prompt iteration:** Which agent outputs are consistently off-target? Update system prompts.
-- **Deployment checklist validation:** Are any deployed agents running with stale API tokens?
+- **Agent 05 royalty reconciliation:** Any discrepancy flagged >$100 requires H.F. personal review. Any flag >$500 requires action.
+- **Prompt iteration:** Which agent outputs are consistently off-target? Update system prompts with specific guidance.
+- **API token audit:** Are any deployed agents running with stale or expiring OAuth tokens? Rotate before they expire silently.
 
-### Quarterly (Half day, H.F. + SkyBlew + Eric)
+---
 
-- **SkyBlew Voice Book review:** H.F. and SkyBlew review and update Agent 12's voice guide in Secrets Manager. Voice evolution should be intentional, not accidental.
-- **A&R pipeline review:** Agent 08's quarterly gap report + A&R target shortlist. Decision: any new signings or licensing conversations?
-- **Fleet architecture review:** Are all agents performing against their success criteria? Is there a case for adding the Investor Relations Agent or Advisory Board Agent from the roadmap?
-- **SBIA annual reset:** Review GHOSTED and DECLINED conventions. Some declined events from 365+ days ago become eligible for re-contact. Update the convention database.
+### Quarterly (Half Day, H.F. + SkyBlew + Eric)
+
+- **SkyBlew Voice Book review (Agent 12):** H.F. and SkyBlew review and update the Voice Book in Secrets Manager (`skyblew/voice-book`). Voice evolution should be intentional, not accidental. Target: voice acceptance rate stays above 80%.
+- **A&R pipeline review (Agent 08):** Quarterly gap report + A&R target shortlist. Decision: any new signings or licensing conversations to open?
+- **Fleet architecture review:** Are all agents performing against their success criteria? Is there a case for adding the Investor Relations Agent, Advisory Board Agent, or other roadmap candidates?
+- **SBIA convention database reset:** Review GHOSTED and DECLINED conventions. Conventions DECLINED 365+ days ago become eligible for re-contact. Update the database accordingly.
 
 ---
 

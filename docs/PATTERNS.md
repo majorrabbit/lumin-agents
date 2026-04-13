@@ -1070,5 +1070,35 @@ These are patterns that were non-obvious and worth flagging explicitly:
 
 ---
 
-*Last updated: Phase 3.0 — April 2026 (SBIA engineering spec ingested)*
-*Assembled from: 13 agent ZIPs + lumin_mas_architecture_guide.docx + lumin_adk_guide.docx + LuminAgentEngineeringSpecs1.pdf + lumin_ai_cost_report.docx + booking_agent_md_file.docx (SBIA ADK Spec v1.0.0)*
+## 18. The CHAO Model and Decision Tiers
+
+*Source: Lumin Agent Fleet Operations Guide, Sections II and VI (April 2026)*
+
+The fleet operates under the **Collaborative Human-AI Orchestration (CHAO)** model — a four-tier decision framework that specifies which decisions agents make autonomously, which they escalate, and which are reserved for H.F. as sole authority.
+
+| Tier | Name | Who Decides | Examples |
+|------|------|-------------|---------|
+| **1** | Autonomous | Agent decides and acts without notification | Resonance scoring, cultural moment detection, security monitoring, fan signal analysis |
+| **2** | Inter-Agent Coordination | Agents coordinate through the shared blackboard (DynamoDB) | Agent 06 → triggers Agents 02, 03, 11, 12 via cultural moment event; Agent 07 → feeds Agent 11 community reprioritization |
+| **3** | Lumin Synthesizes, H.F. Decides | Agent produces a recommendation; H.F. makes the call | Sync pitch strategy, A&R signing recommendations, booking engagement strategy |
+| **4** | H.F. Sole Authority | No agent action without explicit human approval | All public communications, outbound emails, social posts, financial and legal decisions |
+
+### Agents Operating Under Tier 4 Constraints
+
+Six agents (plus parts of two others) have explicit human-approval queues as a **BDI-O Obligation**, not a configurable preference:
+
+- **Agent 02** (Sync Brief Hunter) — sync brief summaries before acting on TIER 1 briefs
+- **Agent 03** (Sync Pitch Campaign) — every pitch email requires H.F. approval via `#pending-approvals`
+- **Agent 09** (Customer Success) — any non-standard CS response or escalation
+- **Agent 11** (Fan Discovery & Outreach) — every outreach message queued in `#fan-discovery-queue`
+- **Agent 12** (Social Media Director) — every post queued in `#pending-approvals` before publish
+- **SBIA** (Booking Intelligence) — every booking email approved before send; `dry_run=True` mandatory for first 14 days
+
+> **Constitutional note (cite: Section VI of Operations Guide):** The approval gates in these agents are BDI-O **Obligations** — first-class reasoning primitives that cannot be overridden by any Desire or Intention, regardless of how compelling the goal. Removing or bypassing an approval gate is a **constitutional violation of the BDI-O architecture**, not a performance optimization. Any developer who encounters an approval gate should treat it with the same weight as a legal compliance requirement.
+
+**Exception:** Agent 10 (CyberSecurity) acts autonomously on confirmed CRITICAL threats (IP blocking, WAF rule updates) — this too is an Obligation. The agent's duty to protect the fleet overrides the overhead of human approval in time-sensitive security incidents. Agent 10 notifies via `#security-ops` immediately after acting, not before.
+
+---
+
+*Last updated: Phase 3.3 — April 2026 (Operations Guide ingested: CHAO model + decision tiers added)*
+*Assembled from: 13 agent ZIPs + lumin_mas_architecture_guide.docx + lumin_adk_guide.docx + LuminAgentEngineeringSpecs1.pdf + lumin_ai_cost_report.docx + booking_agent_md_file.docx (SBIA ADK Spec v1.0.0) + Lumin_Agent_Fleet_Operations_Guide.pdf*

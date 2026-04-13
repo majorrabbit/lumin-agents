@@ -204,6 +204,52 @@ before invoking any agent.
 
 ---
 
+---
+
+## Operational Rhythm Post-Deployment
+
+*This section summarizes the operational model described in Sections V and VI of the Lumin Agent Fleet Operations Guide (April 2026). Refer to that document for the full workflow detail. The canonical acceptance test for the fleet is whether H.F. can sit down at 7:00am and execute the morning workflow as described.*
+
+### Daily Morning Workflow (H.F.)
+
+The agents run on their own schedules. H.F.'s job is not to watch them run — it is to review what they produced and make the decisions that require human judgment. The morning workflow runs 7:00am–8:15am and covers every time-sensitive queue:
+
+| Time | Channel | What to Review |
+|------|---------|---------------|
+| 7:00am | `#pending-approvals` | Most important: social captions (Agent 12), outreach messages (Agent 11), sync pitches (Agent 03), SBIA booking alerts. Work through this first, before anything else. |
+| 7:15am | `#cultural-moments` | Has Agent 06 fired since yesterday? Any FORMING or PEAK moments? MoreLoveLessWar content queued here must be approved within 2–4 hours — the window closes. |
+| 7:30am | `#sync-queue` | New sync briefs from Agent 02. TIER 1 briefs (major streaming, >$5K fee, cultural relevance) need action within 4 hours. DEADLINE CRITICAL means act now. |
+| 7:45am | `#security-ops` | Alerts from Agent 10. In normal operation this should be empty. Any CRITICAL or HIGH alert requires immediate escalation to Eric. |
+| 8:00am | `#hot-leads` | SBIA booking inquiries that received an interested response. These are time-sensitive — SBIA has the full response email and suggested next action ready. |
+| 8:15am | `#fan-discovery-queue` | Agent 11's daily opportunity queue — outreach messages ready for approval. Select the ones that feel most authentic and appropriate. |
+
+### Sunday Review — The Creative Heartbeat
+
+Every Sunday evening at 6:00pm UTC, Agent 12 automatically generates the coming week's full content calendar and posts it for review. **This session — H.F. and SkyBlew together — is the creative heartbeat of the fan-facing operation. The agents handle all execution; this session is where the humans set the direction.**
+
+| Sunday Review Action | What to Do |
+|---------------------|-----------|
+| Review Agent 12's calendar draft | Look at every post for the coming week. Does it sound like SkyBlew? Does the FM & AM campaign feel right at this point? Are there cultural moments coming that the calendar should anticipate? |
+| Approve, edit, or replace | For each post: approve (it goes out as-is at the scheduled time), edit (make changes and approve the revised version), or replace (generate a new option). Add posts the agent has not drafted. |
+| Voice Book update check | If more than 5 posts needed significant edits this week, that is a signal the Voice Book needs updating. Update the Voice Book in AWS Secrets Manager (key: `skyblew/voice-book`) with the phrases and tones that came up in your edits. |
+| SkyBlew's input window | This is SkyBlew's time to add anything personal — a thought that occurred to him, a lyric fragment, a reaction to something happening in the world that he wants to express. The agent can build posts around these inputs for the coming week. |
+
+### Monthly (First Week of Month)
+
+- **BDI-O audit:** Review all agent action logs. Are any Obligations being bypassed? Are any Desires drifting from the Win³ principle?
+- **Cost reconciliation:** Compare actual AWS + Anthropic spend against estimates. Investigate any line items exceeding 150% of estimate.
+- **Agent 05 royalty reconciliation review:** Any discrepancy flagged over $100 requires H.F.'s personal review. Any discrepancy over $500 requires action.
+- **Prompt iteration:** Which agent outputs are consistently off-target? Update system prompts with specific guidance.
+
+### Quarterly (Half Day — H.F. + SkyBlew + Eric)
+
+- **SkyBlew Voice Book review (Agent 12):** H.F. and SkyBlew review and update the Voice Book in Secrets Manager. Voice evolution should be intentional, not accidental. Target: the voice acceptance rate (% of Agent 12's drafts approved without edits) stays above 80%.
+- **A&R pipeline review (Agent 08):** Quarterly gap report + A&R target shortlist. Decision: any new signings or licensing conversations to open?
+- **Fleet architecture review:** Are all agents performing against their success criteria? Is there a case for adding the Investor Relations Agent, Advisory Board Agent, or other roadmap candidates?
+- **SBIA convention database reset:** Review GHOSTED and DECLINED conventions. Conventions DECLINED 365+ days ago become eligible for re-contact. Update the database accordingly.
+
+---
+
 *Lumin MAS Roadmap — April 2026*
 *H.F. (CEO) · Eric (CTO) · ask.lumin.luxe*
 *Win for the Artist · Win for the Fan · Win for the World*
